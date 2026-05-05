@@ -44,6 +44,31 @@ export default function ApiDocsPage() {
         }
         .swagger-ui .btn {
           color: #fff !important;
+          background-color: #4990e2 !important;
+          border-color: #4990e2 !important;
+        }
+        .swagger-ui .btn:hover {
+          background-color: #357abd !important;
+          border-color: #357abd !important;
+        }
+        .swagger-ui .btn.execute {
+          background-color: #4990e2 !important;
+        }
+        .swagger-ui .btn.authorize {
+          background-color: #49cc90 !important;
+          border-color: #49cc90 !important;
+        }
+        .swagger-ui .btn.authorize:hover {
+          background-color: #3daf78 !important;
+          border-color: #3daf78 !important;
+        }
+        .swagger-ui .btn.cancel {
+          background-color: #f93e3e !important;
+          border-color: #f93e3e !important;
+        }
+        .swagger-ui .btn.cancel:hover {
+          background-color: #e03131 !important;
+          border-color: #e03131 !important;
         }
         .swagger-ui .opblock-get .opblock-summary-method {
           color: #fff !important;
