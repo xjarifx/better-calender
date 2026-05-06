@@ -123,7 +123,7 @@ export default function EventsPage() {
         ) : (
           <div className="space-y-3">
             {events.map(event => {
-              const eventColor = event.color || '#818CF8'
+              const eventColor = event.color || '#4285F4'
               return (
                 <div
                   key={event.id}

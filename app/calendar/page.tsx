@@ -469,7 +469,7 @@ function MonthView({
                       onEventClick(event)
                     }}
                     className="h-1.5 rounded-full"
-                    style={{ backgroundColor: event.color || '#818CF8' }}
+                    style={{ backgroundColor: event.color || '#4285F4' }}
                   />
                 ))}
                 {dayEvents.length > 3 && (
@@ -495,7 +495,7 @@ function EventCard({
   onClick: () => void
   compact?: boolean
 }) {
-  const eventColor = event.color || '#818CF8'
+  const eventColor = event.color || '#4285F4'
 
   return (
     <div

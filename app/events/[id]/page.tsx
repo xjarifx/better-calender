@@ -106,7 +106,7 @@ export default function EventDetailPage() {
     )
   }
 
-  const eventColor = event.color || '#818CF8'
+  const eventColor = event.color || '#4285F4'
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

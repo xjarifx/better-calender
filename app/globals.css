@@ -29,35 +29,35 @@
 }
 
 :root {
-  /* Base surface - Dark Navy */
-  --background: oklch(0.145 0.02 264);
-  /* Primary text */
-  --foreground: oklch(0.985 0.002 264);
-  /* Card/secondary surface */
-  --card: oklch(0.205 0.02 264);
-  --card-foreground: oklch(0.985 0.002 264);
-  --popover: oklch(0.205 0.02 264);
-  --popover-foreground: oklch(0.985 0.002 264);
-  /* Accent - Indigo */
-  --primary: oklch(0.67 0.2 264);
-  --primary-foreground: oklch(0.145 0.02 264);
+  /* Base surface - Google Calendar Dark inspired */
+  --background: oklch(0.20 0.02 264);
+  /* Primary text - warmer white */
+  --foreground: oklch(0.92 0.005 264);
+  /* Card/secondary surface - elevated and visible */
+  --card: oklch(0.28 0.02 264);
+  --card-foreground: oklch(0.92 0.005 264);
+  --popover: oklch(0.28 0.02 264);
+  --popover-foreground: oklch(0.92 0.005 264);
+  /* Accent - Google Calendar Blue */
+  --primary: oklch(0.62 0.21 264);
+  --primary-foreground: oklch(1 0 0);
   /* Secondary surface - elevated */
-  --secondary: oklch(0.269 0.02 264);
-  --secondary-foreground: oklch(0.985 0.002 264);
-  /* Muted elements */
-  --muted: oklch(0.269 0.02 264);
-  --muted-foreground: oklch(0.708 0.02 264);
+  --secondary: oklch(0.35 0.02 264);
+  --secondary-foreground: oklch(0.92 0.005 264);
+  /* Muted elements - more visible */
+  --muted: oklch(0.35 0.02 264);
+  --muted-foreground: oklch(0.78 0.015 264);
   /* Accent surface */
-  --accent: oklch(0.269 0.02 264);
-  --accent-foreground: oklch(0.985 0.002 264);
-  /* Semantic colors */
-  --destructive: oklch(0.6 0.25 25);
-  --success: oklch(0.87 0.15 155);
-  --warning: oklch(0.8 0.15 85);
-  /* Border - light border for elevation (Raycast pattern) */
-  --border: rgba(255, 255, 255, 0.08);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: oklch(0.708 0.02 264);
+  --accent: oklch(0.35 0.02 264);
+  --accent-foreground: oklch(0.92 0.005 264);
+  /* Semantic colors - Google Calendar palette */
+  --destructive: oklch(0.58 0.24 25);
+  --success: oklch(0.63 0.16 155);
+  --warning: oklch(0.85 0.17 95);
+  /* Border - clearly visible for component boundaries */
+  --border: rgba(255, 255, 255, 0.18);
+  --input: rgba(255, 255, 255, 0.25);
+  --ring: oklch(0.78 0.015 264);
   /* Standard 8px radius */
   --radius: 0.5rem;
 }
