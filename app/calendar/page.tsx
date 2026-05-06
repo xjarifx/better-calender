@@ -429,12 +429,14 @@ function MonthView({
     <div className="flex-1">
       {/* Day names header */}
       <div className="grid grid-cols-7 gap-1 mb-1">
-        {dayNames.map(name => (
-          <div key={name} className="text-center text-xs text-muted-foreground font-medium py-1">
-            {name}
-          </div>
-        ))}
-      </div>
+         {dayNames.map((name, index) => (
+           <div key={name} className={`text-center text-xs font-medium py-1 ${
+             index === getDay(new Date()) ? 'text-primary' : 'text-muted-foreground'
+           }`}>
+             {name}
+           </div>
+         ))}
+       </div>
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1 flex-1">
