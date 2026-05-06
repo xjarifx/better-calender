@@ -20,6 +20,7 @@ interface Event {
 }
 
 import { ArrowLeft } from 'lucide-react'
+import { PageLoading } from '@/components/ui/loading'
 
 export default function EventsPage() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -114,9 +115,7 @@ export default function EventsPage() {
         )}
 
         {loading ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Loading events...
-          </div>
+          <PageLoading text="Loading events..." />
         ) : events.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-muted-foreground">
             No events yet. Create your first event!

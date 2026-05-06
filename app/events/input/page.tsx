@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import ExtractedEvents from '@/components/ExtractedEvents'
 import { Sparkles, ChevronDown, ArrowLeft } from 'lucide-react'
+import { InlineLoading } from '@/components/ui/loading'
 
 // Recommended models configuration - easy to update for future models
 const RECOMMENDED_MODEL_IDS = ['openai/gpt-oss-120b', 'nvidia/nemotron-3-super']
@@ -202,7 +203,7 @@ export default function EventInputPage() {
                   AI Model
                 </label>
                 {loading ? (
-                  <div className="text-sm text-muted-foreground">Loading models...</div>
+                  <InlineLoading text="Loading models..." />
                 ) : (
                   <div ref={dropdownRef} className="relative">
                     <button

@@ -8,6 +8,7 @@ import EventForm from '@/components/EventForm'
 import { Button } from '@/components/ui/button'
 import { format, parseISO } from 'date-fns'
 import { ArrowLeft } from 'lucide-react'
+import { PageLoading } from '@/components/ui/loading'
 
 export default function EventDetailPage() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -56,9 +57,7 @@ export default function EventDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <div className="flex-1 flex items-center justify-center text-muted-foreground">
-          Loading...
-        </div>
+        <PageLoading text="Loading event..." />
       </div>
     )
   }

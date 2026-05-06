@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
+import { PageLoading } from '@/components/ui/loading'
 import { useSwipe } from '@/hooks/use-swipe'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import {
@@ -224,9 +225,7 @@ export default function CalendarPage() {
         </div>
 
         {loading ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Loading events...
-          </div>
+          <PageLoading />
         ) : (
           <>
             {/* Day View */}

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert } from '@/components/ui/alert'
 import { ArrowLeft } from 'lucide-react'
+import { PageLoading } from '@/components/ui/loading'
 
 export default function SettingsPage() {
   const { isAuthenticated, isLoading, hasApiKey } = useAuth()
@@ -81,11 +82,7 @@ export default function SettingsPage() {
   if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
-        <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Loading...
-          </div>
-        </main>
+        <PageLoading text="Loading settings..." />
       </div>
     )
   }
