@@ -1,10 +1,21 @@
+import Script from "next/script";
+
 export default function ApiDocsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div id="swagger-ui"></div>
-      <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
+      <Script
+        src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"
+        strategy="afterInteractive"
+      />
+      <Script
+        src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"
+        strategy="afterInteractive"
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
+      />
       <style>{`
         .swagger-ui {
           color: #3b4157;
@@ -98,7 +109,9 @@ export default function ApiDocsPage() {
           background-color: #f7f7f7 !important;
         }
       `}</style>
-      <script
+      <Script
+        id="swagger-init"
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
             window.onload = function() {
@@ -115,5 +128,5 @@ export default function ApiDocsPage() {
         }}
       />
     </div>
-  )
+  );
 }

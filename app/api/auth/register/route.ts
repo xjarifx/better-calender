@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       token,
     }, { status: 201 })
   } catch (error) {
-    return NextResponse.json({ error: 'Registration failed' }, { status: 500 })
+    console.error('Registration error:', error)
+    return NextResponse.json({ error: 'Registration failed', details: error instanceof Error ? error.message : String(error) }, { status: 500 })
   }
 }

@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       token,
     })
   } catch (error) {
-    return NextResponse.json({ error: 'Login failed' }, { status: 500 })
+    console.error('Login error:', error)
+    return NextResponse.json({ error: 'Login failed', details: error instanceof Error ? error.message : String(error) }, { status: 500 })
   }
 }
