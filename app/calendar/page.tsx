@@ -44,7 +44,7 @@ interface CalendarEvent {
 export default function CalendarPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
-  const { viewMode, setViewMode, currentDate, setCurrentDate, navigateToday } = useCalendar()
+  const { viewMode, setViewMode, currentDate, setCurrentDate, navigateToday, firstDayOfWeek } = useCalendar()
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -104,16 +104,16 @@ export default function CalendarPage() {
   }
 
   const getWeekDays = () => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
-    const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 })
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: firstDayOfWeek as any })
+    const weekEnd = endOfWeek(currentDate, { weekStartsOn: firstDayOfWeek as any })
     return eachDayOfInterval({ start: weekStart, end: weekEnd })
   }
 
   const getMonthDays = () => {
     const monthStart = startOfMonth(currentDate)
     const monthEnd = endOfMonth(currentDate)
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 0 })
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 })
+    const startDate = startOfWeek(monthStart, { weekStartsOn: firstDayOfWeek as any })
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: firstDayOfWeek as any })
     return eachDayOfInterval({ start: startDate, end: endDate })
   }
 
@@ -203,18 +203,19 @@ export default function CalendarPage() {
               </div>
             )}
 
-            {/* Month View */}
-            {viewMode === 'month' && (
-              <div className="flex-1" {...swipeHandlers}>
-                <MonthView
-                  days={monthDays}
-                  currentDate={currentDate}
-                  events={events}
-                  onEventClick={handleEventClick}
-                  onDayClick={switchToDayView}
-                />
-              </div>
-            )}
+              {/* Month View */}
+              {viewMode === 'month' && (
+                <div className="flex-1" {...swipeHandlers}>
+                  <MonthView
+                    days={monthDays}
+                    currentDate={currentDate}
+                    events={events}
+                    onEventClick={handleEventClick}
+                    onDayClick={switchToDayView}
+                    firstDayOfWeek={firstDayOfWeek}
+                  />
+                </div>
+              )}
           </>
         )}
 
@@ -377,27 +378,36 @@ function MonthView({
   events,
   onEventClick,
   onDayClick,
+  firstDayOfWeek,
 }: {
   days: Date[]
   currentDate: Date
   events: CalendarEvent[]
   onEventClick: (event: CalendarEvent) => void
   onDayClick: (date: Date) => void
+  firstDayOfWeek: number
 }) {
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayNames = []
+  for (let i = 0; i < 7; i++) {
+    const day = addDays(startOfWeek(new Date(), { weekStartsOn: firstDayOfWeek as any }), i)
+    dayNames.push(format(day, 'EEE'))
+  }
 
   return (
     <div className="flex-1">
       {/* Day names header */}
       <div className="grid grid-cols-7 gap-1 mb-1">
-         {dayNames.map((name, index) => (
-           <div key={name} className={`text-center text-xs font-medium py-1 ${
-             index === getDay(new Date()) ? 'text-primary' : 'text-muted-foreground'
-           }`}>
-             {name}
-           </div>
-         ))}
-       </div>
+         {dayNames.map((name, index) => {
+           const todayIndex = (getDay(new Date()) - firstDayOfWeek + 7) % 7
+           return (
+            <div key={name} className={`text-center text-xs font-medium py-1 ${
+              index === todayIndex ? 'text-primary' : 'text-muted-foreground'
+            }`}>
+              {name}
+            </div>
+           )
+         })}
+        </div>
 
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-1 flex-1">

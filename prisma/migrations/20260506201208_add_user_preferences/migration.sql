@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "firstDayOfWeek" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "timeFormat" VARCHAR(10) NOT NULL DEFAULT '12h',
+ADD COLUMN     "tokenVersion" INTEGER NOT NULL DEFAULT 0;

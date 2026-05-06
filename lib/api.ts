@@ -138,4 +138,40 @@ export const api = {
     if (!res.ok) throw new Error('Failed to update API key')
     return res.json()
   },
+
+  async updateProfile(data: { timeFormat?: string; firstDayOfWeek?: number }) {
+    const res = await apiFetch('/api/user', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error || 'Failed to update profile')
+    }
+    return res.json()
+  },
+
+  async updateUsername(username: string, currentPassword: string) {
+    const res = await apiFetch('/api/user', {
+      method: 'PUT',
+      body: JSON.stringify({ username, currentPassword }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error || 'Failed to update username')
+    }
+    return res.json()
+  },
+
+  async updatePassword(currentPassword: string, newPassword: string) {
+    const res = await apiFetch('/api/user', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error || 'Failed to update password')
+    }
+    return res.json()
+  },
 }

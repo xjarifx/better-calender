@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = jwt.sign(
-      { userId: user.id, username: user.username },
+      { userId: user.id, username: user.username, tokenVersion: user.tokenVersion },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '7d' }
     )

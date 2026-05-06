@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
 
 export type ViewMode = 'day' | 'week' | 'month'
 
@@ -10,6 +10,8 @@ interface CalendarContextType {
   currentDate: Date
   setCurrentDate: (date: Date) => void
   navigateToday: () => void
+  firstDayOfWeek: number
+  setFirstDayOfWeek: (day: number) => void
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(undefined)
@@ -17,14 +19,26 @@ const CalendarContext = createContext<CalendarContextType | undefined>(undefined
 export function CalendarProvider({ children }: { children: ReactNode }) {
   const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState(0)
 
   const navigateToday = useCallback(() => {
     setCurrentDate(new Date())
   }, [])
 
+  useEffect(() => {
+    fetch('/api/user')
+      .then(res => res.json())
+      .then(data => {
+        if (data.firstDayOfWeek !== undefined) {
+          setFirstDayOfWeek(data.firstDayOfWeek)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <CalendarContext.Provider
-      value={{ viewMode, setViewMode, currentDate, setCurrentDate, navigateToday }}
+      value={{ viewMode, setViewMode, currentDate, setCurrentDate, navigateToday, firstDayOfWeek, setFirstDayOfWeek }}
     >
       {children}
     </CalendarContext.Provider>

@@ -109,3 +109,66 @@ export async function getUserApiKey(userId: number): Promise<string | null> {
   })
   return user?.apiKey || null
 }
+
+export async function updateUserPreferences(
+  userId: number,
+  data: { timeFormat?: string; firstDayOfWeek?: number }
+): Promise<void> {
+  const updateData: any = {}
+  if (data.timeFormat !== undefined) updateData.timeFormat = data.timeFormat
+  if (data.firstDayOfWeek !== undefined) updateData.firstDayOfWeek = data.firstDayOfWeek
+  await prisma.users.update({
+    where: { id: userId },
+    data: updateData,
+  })
+}
+
+export async function updateUsername(
+  userId: number,
+  newUsername: string,
+  currentPassword: string
+): Promise<void> {
+  const user = await prisma.users.findUnique({ where: { id: userId } })
+  if (!user) throw new Error('User not found')
+
+  const valid = await bcrypt.compare(currentPassword, user.password)
+  if (!valid) throw new Error('Invalid password')
+
+  const existing = await prisma.users.findUnique({ where: { username: newUsername } })
+  if (existing && existing.id !== userId) throw new Error('Username already exists')
+
+  await prisma.users.update({
+    where: { id: userId },
+    data: { username: newUsername },
+  })
+}
+
+export async function updatePassword(
+  userId: number,
+  currentPassword: string,
+  newPassword: string
+): Promise<number> {
+  const user = await prisma.users.findUnique({ where: { id: userId } })
+  if (!user) throw new Error('User not found')
+
+  const valid = await bcrypt.compare(currentPassword, user.password)
+  if (!valid) throw new Error('Invalid password')
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10)
+  const newTokenVersion = user.tokenVersion + 1
+
+  await prisma.users.update({
+    where: { id: userId },
+    data: { password: hashedPassword, tokenVersion: newTokenVersion },
+  })
+
+  return newTokenVersion
+}
+
+export async function getUserPreferences(userId: number) {
+  const user = await prisma.users.findUnique({
+    where: { id: userId },
+    select: { username: true, timeFormat: true, firstDayOfWeek: true, tokenVersion: true },
+  })
+  return user
+}

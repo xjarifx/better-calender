@@ -22,10 +22,13 @@ model events {
 }
 
 model users {
-  id         Int      @id @default(autoincrement())
-  username   String   @unique @db.VarChar(255)
-  password   String   @db.VarChar(255)
-  apiKey     String?  @db.VarChar(255)
-  created_at DateTime @default(now())
-  events     events[]
+  id             Int      @id @default(autoincrement())
+  username       String   @unique @db.VarChar(255)
+  password       String   @db.VarChar(255)
+  apiKey         String?  @db.VarChar(255)
+  timeFormat     String   @default("12h") @db.VarChar(10)
+  firstDayOfWeek Int      @default(0)
+  tokenVersion   Int      @default(0)
+  created_at     DateTime @default(now())
+  events         events[]
 }

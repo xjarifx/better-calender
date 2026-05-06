@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => void
   isLoading: boolean
   refreshAuth: () => Promise<void>
+  setUsernameState: (username: string | null) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   isLoading: true,
   refreshAuth: async () => {},
+  setUsernameState: () => {},
 })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -39,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(true)
           setUsername(data.username)
 
-          // Also get API key status
           try {
             const profileRes = await fetch('/api/user')
             if (profileRes.ok) {
@@ -85,8 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login')
   }
 
+  const setUsernameState = (newUsername: string | null) => {
+    setUsername(newUsername)
+    if (newUsername !== null) {
+      document.cookie = `username=${newUsername}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, hasApiKey, logout, isLoading, refreshAuth: checkAuth }}>
+    <AuthContext.Provider value={{ isAuthenticated, username, hasApiKey, logout, isLoading, refreshAuth: checkAuth, setUsernameState }}>
       {children}
     </AuthContext.Provider>
   )

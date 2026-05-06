@@ -3,21 +3,39 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { useCalendar } from '@/lib/calendar-context'
 import { api } from '@/lib/api'
+import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Alert } from '@/components/ui/alert'
-import { ArrowLeft } from 'lucide-react'
 import { PageLoading } from '@/components/ui/loading'
 
+function updateTokenCookie(token: string) {
+  document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; samesite=lax`
+}
+
 export default function SettingsPage() {
-  const { isAuthenticated, isLoading, hasApiKey } = useAuth()
+  const { isAuthenticated, isLoading, hasApiKey, refreshAuth } = useAuth()
+  const { setFirstDayOfWeek: setContextFirstDayOfWeek } = useCalendar()
   const router = useRouter()
+
   const [apiKey, setApiKey] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(true)
+
+  const [timeFormat, setTimeFormat] = useState('12h')
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState(0)
+
+  const [newUsername, setNewUsername] = useState('')
+  const [usernamePassword, setUsernamePassword] = useState('')
+  const [usernameSaving, setUsernameSaving] = useState(false)
+
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordSaving, setPasswordSaving] = useState(false)
 
   useEffect(() => {
     if (isLoading) return
@@ -34,6 +52,8 @@ export default function SettingsPage() {
       if (data.hasApiKey) {
         setApiKey('••••••••••••••••••••••••••••••')
       }
+      if (data.timeFormat) setTimeFormat(data.timeFormat)
+      if (data.firstDayOfWeek !== undefined) setFirstDayOfWeek(data.firstDayOfWeek)
     } catch (err) {
       setError('Failed to load profile')
     } finally {
@@ -41,18 +61,16 @@ export default function SettingsPage() {
     }
   }
 
-  const handleSave = async () => {
+  const handleSaveApiKey = async () => {
     setError('')
     setSuccess('')
     setSaving(true)
-
     try {
       if (apiKey === '••••••••••••••••••••••••••••••') {
         setError('API key already saved')
         setSaving(false)
         return
       }
-
       await api.updateApiKey(apiKey || null)
       setSuccess('API key saved successfully!')
       setApiKey('••••••••••••••••••••••••••••••')
@@ -63,11 +81,10 @@ export default function SettingsPage() {
     }
   }
 
-  const handleRemove = async () => {
+  const handleRemoveApiKey = async () => {
     setError('')
     setSuccess('')
     setSaving(true)
-
     try {
       await api.updateApiKey(null)
       setApiKey('')
@@ -76,6 +93,64 @@ export default function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Failed to remove API key')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleSavePreferences = async () => {
+    setError('')
+    setSuccess('')
+    setSaving(true)
+    try {
+      await api.updateProfile({ timeFormat, firstDayOfWeek })
+      setContextFirstDayOfWeek(firstDayOfWeek)
+      setSuccess('Preferences saved!')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save preferences')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangeUsername = async () => {
+    setError('')
+    setSuccess('')
+    setUsernameSaving(true)
+    try {
+      if (!newUsername.trim()) throw new Error('Username cannot be empty')
+      if (!usernamePassword) throw new Error('Current password required')
+      await api.updateUsername(newUsername.trim(), usernamePassword)
+      setSuccess('Username updated!')
+      setNewUsername('')
+      setUsernamePassword('')
+      refreshAuth()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update username')
+    } finally {
+      setUsernameSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    setError('')
+    setSuccess('')
+    setPasswordSaving(true)
+    try {
+      if (!oldPassword) throw new Error('Current password required')
+      if (!newPassword) throw new Error('New password required')
+      if (newPassword !== confirmPassword) throw new Error('Passwords do not match')
+      if (newPassword.length < 6) throw new Error('Password must be at least 6 characters')
+      const result = await api.updatePassword(oldPassword, newPassword)
+      if (result.token) {
+        updateTokenCookie(result.token)
+      }
+      setSuccess('Password updated! You may need to log in again on other devices.')
+      setOldPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update password')
+    } finally {
+      setPasswordSaving(false)
     }
   }
 
@@ -114,24 +189,17 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="max-w-2xl">
+        <div className="max-w-2xl space-y-6">
+          {/* API Key */}
           <div className="rounded-lg border p-6 space-y-4">
-            <div>
-              <h2 className="text-lg font-semibold mb-2">OpenRouter API Key</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                By default, the app uses a shared API key. You can add your own OpenRouter API key to avoid rate limits.
-                Get your free API key at{' '}
-                <a
-                  href="https://openrouter.ai/keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground underline"
-                >
-                  openrouter.ai/keys
-                </a>
-              </p>
-            </div>
-
+            <h2 className="text-lg font-semibold">OpenRouter API Key</h2>
+            <p className="text-sm text-muted-foreground">
+              By default, the app uses a shared API key. You can add your own to avoid rate limits.
+              Get your key at{' '}
+              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="underline">
+                openrouter.ai/keys
+              </a>
+            </p>
             <div>
               <label className="text-sm font-medium block mb-1.5">API Key</label>
               <Input
@@ -141,32 +209,144 @@ export default function SettingsPage() {
                 placeholder="sk-or-v1-..."
                 className="font-mono rounded-lg"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Your API key is stored securely and only used for AI requests.
-              </p>
             </div>
-
             <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} className="rounded-lg">
+              <Button onClick={handleSaveApiKey} disabled={saving} className="rounded-lg">
                 {saving ? 'Saving...' : 'Save API Key'}
               </Button>
               {hasApiKey && (
-                <Button variant="outline" onClick={handleRemove} disabled={saving} className="rounded-lg">
+                <Button variant="outline" onClick={handleRemoveApiKey} disabled={saving} className="rounded-lg">
                   Remove Key
                 </Button>
               )}
             </div>
+            <p className="text-sm text-muted-foreground">
+              <strong>Status:</strong>{' '}
+              {hasApiKey ? (
+                <span className="text-green-600">Using your personal API key</span>
+              ) : (
+                <span>Using default shared key</span>
+              )}
+            </p>
+          </div>
 
-            <div className="pt-4 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                <strong>Status:</strong>{' '}
-                {hasApiKey ? (
-                  <span className="text-green-600">Using your personal API key</span>
-                ) : (
-                  <span>Using default shared key (may have rate limits)</span>
-                )}
-              </p>
+          {/* Time Format & First Day of Week */}
+          <div className="rounded-lg border p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Preferences</h2>
+
+            <div>
+              <label className="text-sm font-medium block mb-2">Time Format</label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="timeFormat"
+                    value="12h"
+                    checked={timeFormat === '12h'}
+                    onChange={() => setTimeFormat('12h')}
+                  />
+                  12-hour (AM/PM)
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="timeFormat"
+                    value="24h"
+                    checked={timeFormat === '24h'}
+                    onChange={() => setTimeFormat('24h')}
+                  />
+                  24-hour
+                </label>
+              </div>
             </div>
+
+            <div>
+              <label className="text-sm font-medium block mb-1.5">First Day of Week</label>
+              <select
+                value={firstDayOfWeek}
+                onChange={e => setFirstDayOfWeek(Number(e.target.value))}
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value={0}>Sunday</option>
+                <option value={1}>Monday</option>
+                <option value={2}>Tuesday</option>
+                <option value={3}>Wednesday</option>
+                <option value={4}>Thursday</option>
+                <option value={5}>Friday</option>
+                <option value={6}>Saturday</option>
+              </select>
+            </div>
+
+            <Button onClick={handleSavePreferences} disabled={saving} className="rounded-lg">
+              {saving ? 'Saving...' : 'Save Preferences'}
+            </Button>
+          </div>
+
+          {/* Change Username */}
+          <div className="rounded-lg border p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Change Username</h2>
+            <p className="text-sm text-muted-foreground">Enter a new username and confirm with your current password.</p>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">New Username</label>
+              <Input
+                value={newUsername}
+                onChange={e => setNewUsername(e.target.value)}
+                placeholder="New username"
+                className="rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Current Password</label>
+              <Input
+                type="password"
+                value={usernamePassword}
+                onChange={e => setUsernamePassword(e.target.value)}
+                placeholder="Enter current password"
+                className="rounded-lg"
+              />
+            </div>
+            <Button onClick={handleChangeUsername} disabled={usernameSaving} className="rounded-lg">
+              {usernameSaving ? 'Saving...' : 'Update Username'}
+            </Button>
+          </div>
+
+          {/* Change Password */}
+          <div className="rounded-lg border p-6 space-y-4">
+            <h2 className="text-lg font-semibold">Change Password</h2>
+            <p className="text-sm text-muted-foreground">Changing your password will log you out from other devices.</p>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Current Password</label>
+              <Input
+                type="password"
+                value={oldPassword}
+                onChange={e => setOldPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">New Password</label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                placeholder="Enter new password (min 6 chars)"
+                className="rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1.5">Confirm New Password</label>
+              <Input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="rounded-lg"
+              />
+            </div>
+            <Button onClick={handleChangePassword} disabled={passwordSaving} className="rounded-lg">
+              {passwordSaving ? 'Saving...' : 'Update Password'}
+            </Button>
           </div>
         </div>
       </main>
