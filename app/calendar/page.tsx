@@ -284,7 +284,7 @@ function DayView({
   onEventClick: (event: CalendarEvent) => void
 }) {
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3">
       <div className="text-center mb-3">
         <span className={isToday(date) ? 'text-primary font-semibold' : ''}>
           {format(date, 'EEEE, MMMM d')}
@@ -345,7 +345,7 @@ function WeekView({
           })
 
           return (
-            <div key={day.toISOString()} className="space-y-1 min-h-[200px]">
+            <div key={day.toISOString()} className="space-y-1 min-h-[200px] border border-gray-300 dark:border-gray-600 rounded-lg p-1">
               {dayEvents.map(event => (
                 <EventCard
                   key={event.id}
@@ -404,7 +404,7 @@ function MonthView({
             <div
               key={day.toISOString()}
               onClick={() => onDayClick(day)}
-              className={`min-h-[80px] p-1 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors ${
+              className={`min-h-[80px] p-1 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors border border-gray-300 dark:border-gray-600 ${
                 isCurrentDay ? 'bg-primary/20' : ''
               } ${!isCurrentMonth ? 'opacity-40' : ''}`}
             >
