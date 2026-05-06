@@ -345,7 +345,7 @@ function WeekView({
           })
 
           return (
-            <div key={day.toISOString()} className="space-y-1 min-h-[200px] border border-gray-300 dark:border-gray-600 rounded-lg p-1">
+            <div key={day.toISOString()} className="space-y-0.5 min-h-[200px] border border-gray-300 dark:border-gray-600 rounded-lg p-1 overflow-hidden">
               {dayEvents.map(event => (
                 <EventCard
                   key={event.id}
@@ -413,24 +413,21 @@ function MonthView({
                }`}>
                  {format(day, 'd')}
                </div>
-              <div className="space-y-0.5">
-                {dayEvents.slice(0, 3).map(event => (
-                  <div
-                    key={event.id}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onEventClick(event)
-                    }}
-                    className="h-1.5 rounded-full"
-                    style={{ backgroundColor: event.color || '#4285F4' }}
-                  />
-                ))}
-                {dayEvents.length > 3 && (
-                  <div className="text-xs text-muted-foreground">
-                    +{dayEvents.length - 3}
-                  </div>
-                )}
-              </div>
+              <div className="space-y-0.5 overflow-hidden">
+                 {dayEvents.slice(0, 3).map(event => (
+                   <EventCard
+                     key={event.id}
+                     event={event}
+                     onClick={() => onEventClick(event)}
+                     ultraCompact
+                   />
+                 ))}
+                 {dayEvents.length > 3 && (
+                   <div className="text-[10px] text-muted-foreground pl-0.5">
+                     +{dayEvents.length - 3} more
+                   </div>
+                 )}
+               </div>
             </div>
           )
         })}
@@ -443,25 +440,36 @@ function EventCard({
   event,
   onClick,
   compact = false,
+  ultraCompact = false,
 }: {
   event: CalendarEvent
   onClick: () => void
   compact?: boolean
+  ultraCompact?: boolean
 }) {
   const eventColor = event.color || '#4285F4'
 
   return (
     <div
-      onClick={onClick}
-      className={`rounded-lg p-2 cursor-pointer hover:opacity-90 transition-opacity ${
-        compact ? 'p-1' : 'p-3'
-      }`}
-      style={{ backgroundColor: eventColor + '30', borderLeft: `3px solid ${eventColor}` }}
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick()
+      }}
+      className={`rounded cursor-pointer hover:opacity-90 transition-opacity ${
+        ultraCompact ? 'p-0.5' : compact ? 'p-1' : 'p-3'
+      } ${!ultraCompact ? 'border-l-[3px]' : ''}`}
+      style={{
+        backgroundColor: eventColor + '30',
+        ...(ultraCompact ? {} : { borderLeftColor: eventColor }),
+      }}
+      title={event.title}
     >
-      <div className={`font-medium ${compact ? 'text-xs' : 'text-sm'}`}>
+      <div className={`font-medium truncate ${
+        ultraCompact ? 'text-[10px]' : compact ? 'text-xs' : 'text-sm'
+      }`}>
         {event.title}
       </div>
-      {!compact && event.start_time && (
+      {!compact && !ultraCompact && event.start_time && (
         <div className="text-xs text-muted-foreground mt-1">
           {format(new Date(event.start_time), 'p')}
         </div>

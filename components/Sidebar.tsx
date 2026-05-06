@@ -13,7 +13,6 @@ import {
   Settings,
   LogOut,
   Plus,
-  ChevronDown,
 } from 'lucide-react'
 import { useState } from 'react'
 import { BottomSheet } from './ui/bottom-sheet'
@@ -28,47 +27,24 @@ const navItems = [
 function CalendarControls() {
   const router = useRouter()
   const { viewMode, setViewMode, navigateToday } = useCalendar()
-  const [viewOpen, setViewOpen] = useState(false)
-
-  const viewOptions: { mode: ViewMode; label: string }[] = [
-    { mode: 'day', label: 'Day' },
-    { mode: 'week', label: 'Week' },
-    { mode: 'month', label: 'Month' },
-  ]
 
   return (
     <div className="p-3 border-t border-border space-y-3">
-      {/* View Switcher */}
-      <div>
-        <div className="relative">
+      {/* View Switcher Tabs */}
+      <div className="flex gap-1">
+        {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
           <button
-            onClick={() => setViewOpen(!viewOpen)}
-            className="flex items-center justify-between w-full px-3 py-2 text-sm rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            className={`flex-1 text-xs py-1.5 rounded-md transition-colors ${
+              viewMode === mode
+                ? 'bg-primary text-primary-foreground font-medium'
+                : 'text-muted-foreground hover:bg-muted'
+            }`}
           >
-            <span className="text-muted-foreground">View: <span className="text-foreground font-medium">{viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}</span></span>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${viewOpen ? 'rotate-180' : ''}`} />
+            {mode.charAt(0).toUpperCase() + mode.slice(1)}
           </button>
-          {viewOpen && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-background border border-border rounded-lg shadow-lg z-50 overflow-hidden">
-              {viewOptions.map(option => (
-                <button
-                  key={option.mode}
-                  onClick={() => {
-                    setViewMode(option.mode)
-                    setViewOpen(false)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                    viewMode === option.mode
-                      ? 'bg-muted font-medium'
-                      : 'hover:bg-muted/50'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        ))}
       </div>
 
       {/* Today Button */}
