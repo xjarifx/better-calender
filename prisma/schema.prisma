@@ -17,7 +17,7 @@ model events {
   location    String?
   description String?
   created_at  DateTime  @default(now())
-  updated_at  DateTime
+  updated_at  DateTime  @updatedAt
   users       users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 

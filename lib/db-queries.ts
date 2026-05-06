@@ -1,10 +1,10 @@
 import { prisma } from './db'
-import type { Event, User } from '@prisma/client'
+import type { events, users } from '@prisma/client'
 import bcrypt from 'bcrypt'
 
-export async function createUser(username: string, password: string): Promise<User> {
+export async function createUser(username: string, password: string): Promise<users> {
   const hashedPassword = await bcrypt.hash(password, 10)
-  return prisma.user.create({
+  return prisma.users.create({
     data: {
       username,
       password: hashedPassword,
@@ -12,14 +12,14 @@ export async function createUser(username: string, password: string): Promise<Us
   })
 }
 
-export async function getUserByUsername(username: string): Promise<User | null> {
-  return prisma.user.findUnique({
+export async function getUserByUsername(username: string): Promise<users | null> {
+  return prisma.users.findUnique({
     where: { username },
   })
 }
 
-export async function getUserById(id: number): Promise<User | null> {
-  return prisma.user.findUnique({
+export async function getUserById(id: number): Promise<users | null> {
+  return prisma.users.findUnique({
     where: { id },
   })
 }
@@ -33,31 +33,31 @@ export async function createEvent(data: {
   endTime?: Date | null
   location?: string
   description?: string
-}): Promise<Event> {
-  return prisma.event.create({
+}): Promise<events> {
+  return prisma.events.create({
     data: {
-      userId: data.userId,
+      user_id: data.userId,
       title: data.title,
-      startDate: data.startDate,
-      startTime: data.startTime,
-      endDate: data.endDate,
-      endTime: data.endTime,
+      start_date: data.startDate,
+      start_time: data.startTime,
+      end_date: data.endDate,
+      end_time: data.endTime,
       location: data.location,
       description: data.description,
     },
   })
 }
 
-export async function getEventsByUserId(userId: number): Promise<Event[]> {
-  return prisma.event.findMany({
-    where: { userId },
-    orderBy: { startDate: 'asc' },
+export async function getEventsByUserId(userId: number): Promise<events[]> {
+  return prisma.events.findMany({
+    where: { user_id: userId },
+    orderBy: { start_date: 'asc' },
   })
 }
 
-export async function getEventById(id: number, userId: number): Promise<Event | null> {
-  return prisma.event.findFirst({
-    where: { id, userId },
+export async function getEventById(id: number, userId: number): Promise<events | null> {
+  return prisma.events.findFirst({
+    where: { id, user_id: userId },
   })
 }
 
@@ -73,15 +73,24 @@ export async function updateEvent(
     location: string
     description: string
   }>
-): Promise<Event> {
-  return prisma.event.update({
-    where: { id },
-    data,
+): Promise<events> {
+  const updateData: any = {}
+  if (data.title !== undefined) updateData.title = data.title
+  if (data.startDate !== undefined) updateData.start_date = data.startDate
+  if (data.startTime !== undefined) updateData.start_time = data.startTime
+  if (data.endDate !== undefined) updateData.end_date = data.endDate
+  if (data.endTime !== undefined) updateData.end_time = data.endTime
+  if (data.location !== undefined) updateData.location = data.location
+  if (data.description !== undefined) updateData.description = data.description
+
+  return prisma.events.update({
+    where: { id, user_id: userId },
+    data: updateData,
   })
 }
 
-export async function deleteEvent(id: number, userId: number): Promise<Event> {
-  return prisma.event.delete({
-    where: { id },
+export async function deleteEvent(id: number, userId: number): Promise<events> {
+  return prisma.events.delete({
+    where: { id, user_id: userId },
   })
 }
