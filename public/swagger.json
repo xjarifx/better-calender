@@ -3,12 +3,19 @@
   "info": {
     "title": "Better Calendar API",
     "version": "1.0.0",
-    "description": "API documentation for Better Calendar application"
+    "description": "API documentation for Better Calendar - an AI-powered calendar application. This API supports user authentication, event management, and AI-powered event extraction from text.",
+    "contact": {
+      "name": "Better Calendar Team"
+    }
   },
   "servers": [
     {
       "url": "http://localhost:3000",
       "description": "Development server"
+    },
+    {
+      "url": "https://your-production-domain.com",
+      "description": "Production server"
     }
   ],
   "components": {
@@ -16,49 +23,155 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from /api/auth/login or /api/auth/register. Include as: Authorization: Bearer <token>"
       }
     },
     "schemas": {
       "User": {
         "type": "object",
+        "description": "User object representing a registered user",
         "properties": {
-          "id": { "type": "integer" },
-          "username": { "type": "string" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "integer",
+            "description": "Unique user identifier",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "Unique username for login",
+            "example": "johndoe"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Account creation timestamp",
+            "example": "2026-05-06T10:30:00Z"
+          }
         }
       },
       "Event": {
         "type": "object",
+        "description": "Calendar event object. Supports both all-day events (no start_time/end_time) and timed events.",
         "properties": {
-          "id": { "type": "integer" },
-          "userId": { "type": "integer" },
-          "title": { "type": "string" },
-          "start_date": { "type": "string", "format": "date-time" },
-          "start_time": { "type": "string", "format": "date-time", "nullable": true },
-          "end_date": { "type": "string", "format": "date-time", "nullable": true },
-          "end_time": { "type": "string", "format": "date-time", "nullable": true },
-          "location": { "type": "string", "nullable": true },
-          "description": { "type": "string", "nullable": true },
-          "created_at": { "type": "string", "format": "date-time" },
-          "updated_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "integer",
+            "description": "Unique event identifier",
+            "example": 1
+          },
+          "userId": {
+            "type": "integer",
+            "description": "ID of the user who owns this event",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "description": "Event title/name",
+            "example": "Team Meeting"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event start date (required). For all-day events, this is the date only.",
+            "example": "2026-05-10T00:00:00Z"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Event start time (optional). If null, event is all-day. If provided, includes specific time.",
+            "example": "2026-05-10T14:00:00Z"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Event end date (optional). Defaults to start_date if not provided.",
+            "example": "2026-05-10T00:00:00Z"
+          },
+          "end_time": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Event end time (optional). For timed events, specifies when the event ends.",
+            "example": "2026-05-10T15:30:00Z"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true,
+            "description": "Event location (optional)",
+            "example": "Conference Room B"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Event description or notes (optional)",
+            "example": "Weekly sync with the development team"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Event creation timestamp",
+            "example": "2026-05-06T10:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp",
+            "example": "2026-05-06T10:30:00Z"
+          }
         }
       },
       "AuthResponse": {
         "type": "object",
+        "description": "Response after successful authentication (login/register)",
         "properties": {
-          "id": { "type": "integer" },
-          "username": { "type": "string" },
-          "token": { "type": "string" }
+          "id": {
+            "type": "integer",
+            "description": "User ID",
+            "example": 1
+          },
+          "username": {
+            "type": "string",
+            "description": "Username",
+            "example": "johndoe"
+          },
+          "token": {
+            "type": "string",
+            "description": "JWT token for authenticating subsequent requests. Store in localStorage/sessionStorage and include in Authorization header.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Standard error response",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Invalid credentials"
+          },
+          "details": {
+            "type": "string",
+            "description": "Additional error details (optional, mainly in development)",
+            "example": "Password does not match"
+          }
         }
       }
     }
   },
-  "security": [{ "bearerAuth": [] }],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
   "paths": {
     "/api/auth/register": {
       "post": {
         "summary": "Register a new user",
+        "description": "Creates a new user account with username and password. Password has no minimum length or complexity requirements currently. Returns a JWT token for immediate authentication.",
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -67,8 +180,26 @@
                 "type": "object",
                 "required": ["username", "password"],
                 "properties": {
-                  "username": { "type": "string" },
-                  "password": { "type": "string", "format": "password" }
+                  "username": {
+                    "type": "string",
+                    "description": "Unique username (255 chars max)",
+                    "example": "johndoe"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Password for the account. Currently no complexity requirements enforced.",
+                    "example": "mypassword123"
+                  }
+                }
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic registration",
+                  "value": {
+                    "username": "johndoe",
+                    "password": "securepassword"
+                  }
                 }
               }
             }
@@ -79,18 +210,76 @@
             "description": "User registered successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful registration",
+                    "value": {
+                      "id": 1,
+                      "username": "johndoe",
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
               }
             }
           },
-          "409": { "description": "Username already exists" },
-          "400": { "description": "Missing required fields" }
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missing": {
+                    "summary": "Missing fields",
+                    "value": {
+                      "error": "Username and password required"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Username already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "duplicate": {
+                    "summary": "Duplicate username",
+                    "value": {
+                      "error": "Username already exists"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/auth/login": {
       "post": {
         "summary": "Login user",
+        "description": "Authenticates a user with username and password. Returns a JWT token valid for 7 days.",
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -99,8 +288,26 @@
                 "type": "object",
                 "required": ["username", "password"],
                 "properties": {
-                  "username": { "type": "string" },
-                  "password": { "type": "string", "format": "password" }
+                  "username": {
+                    "type": "string",
+                    "description": "Registered username",
+                    "example": "johndoe"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "User's password",
+                    "example": "mypassword123"
+                  }
+                }
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic login",
+                  "value": {
+                    "username": "johndoe",
+                    "password": "securepassword"
+                  }
                 }
               }
             }
@@ -111,18 +318,63 @@
             "description": "Login successful",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful login",
+                    "value": {
+                      "id": 1,
+                      "username": "johndoe",
+                      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    }
+                  }
+                }
               }
             }
           },
-          "401": { "description": "Invalid credentials" }
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid": {
+                    "summary": "Wrong password",
+                    "value": {
+                      "error": "Invalid credentials"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/events": {
       "get": {
         "summary": "List all events for authenticated user",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Returns all events belonging to the authenticated user, ordered by start date ascending. Requires JWT authentication.",
+        "tags": ["Events"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of events",
@@ -130,17 +382,75 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Event" }
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                },
+                "examples": {
+                  "multiple": {
+                    "summary": "Multiple events",
+                    "value": [
+                      {
+                        "id": 1,
+                        "userId": 1,
+                        "title": "Team Meeting",
+                        "start_date": "2026-05-10T00:00:00Z",
+                        "start_time": "2026-05-10T14:00:00Z",
+                        "end_date": "2026-05-10T00:00:00Z",
+                        "end_time": "2026-05-10T15:30:00Z",
+                        "location": "Conference Room B",
+                        "description": "Weekly sync with the development team",
+                        "created_at": "2026-05-06T10:30:00Z",
+                        "updated_at": "2026-05-06T10:30:00Z"
+                      },
+                      {
+                        "id": 2,
+                        "userId": 1,
+                        "title": "All-Day Conference",
+                        "start_date": "2026-05-15T00:00:00Z",
+                        "start_time": null,
+                        "end_date": "2026-05-15T00:00:00Z",
+                        "end_time": null,
+                        "location": "Convention Center",
+                        "description": "Annual tech conference",
+                        "created_at": "2026-05-06T11:00:00Z",
+                        "updated_at": "2026-05-06T11:00:00Z"
+                      }
+                    ]
+                  }
                 }
               }
             }
           },
-          "401": { "description": "Unauthorized" }
+          "401": {
+            "description": "Unauthorized - invalid or missing token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing or invalid token",
+                    "value": {
+                      "error": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "post": {
         "summary": "Create a new event",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Creates a new calendar event for the authenticated user. Events can be all-day (no start_time/end_time) or timed events. Date format: ISO 8601 (e.g., 2026-05-10T14:00:00Z)",
+        "tags": ["Events"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -149,13 +459,68 @@
                 "type": "object",
                 "required": ["title", "startDate"],
                 "properties": {
-                  "title": { "type": "string" },
-                  "startDate": { "type": "string", "format": "date-time" },
-                  "startTime": { "type": "string", "format": "date-time" },
-                  "endDate": { "type": "string", "format": "date-time" },
-                  "endTime": { "type": "string", "format": "date-time" },
-                  "location": { "type": "string" },
-                  "description": { "type": "string" }
+                  "title": {
+                    "type": "string",
+                    "description": "Event title (255 chars max)",
+                    "example": "Team Meeting"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Event start date (ISO 8601 format)",
+                    "example": "2026-05-10T00:00:00Z"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Event start time (optional). If provided, event is a timed event. ISO 8601 format.",
+                    "example": "2026-05-10T14:00:00Z"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Event end date (optional). Defaults to startDate if not provided.",
+                    "example": "2026-05-10T00:00:00Z"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Event end time (optional). For timed events, when the event ends.",
+                    "example": "2026-05-10T15:30:00Z"
+                  },
+                  "location": {
+                    "type": "string",
+                    "description": "Event location (optional)",
+                    "example": "Conference Room B"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Event description or notes (optional)",
+                    "example": "Weekly sync with the development team"
+                  }
+                }
+              },
+              "examples": {
+                "timed": {
+                  "summary": "Timed event",
+                  "value": {
+                    "title": "Team Meeting",
+                    "startDate": "2026-05-10T00:00:00Z",
+                    "startTime": "2026-05-10T14:00:00Z",
+                    "endDate": "2026-05-10T00:00:00Z",
+                    "endTime": "2026-05-10T15:30:00Z",
+                    "location": "Conference Room B",
+                    "description": "Weekly sync with the development team"
+                  }
+                },
+                "allDay": {
+                  "summary": "All-day event",
+                  "value": {
+                    "title": "Holiday",
+                    "startDate": "2026-05-15T00:00:00Z",
+                    "location": "Home",
+                    "description": "National holiday - office closed"
+                  }
                 }
               }
             }
@@ -166,25 +531,65 @@
             "description": "Event created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Event" }
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
               }
             }
           },
-          "401": { "description": "Unauthorized" },
-          "400": { "description": "Missing required fields" }
+          "400": {
+            "description": "Missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/api/events/{id}": {
       "get": {
         "summary": "Get a single event",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Returns details of a specific event by ID. User can only access their own events.",
+        "tags": ["Events"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "description": "Event ID",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
           }
         ],
         "responses": {
@@ -192,23 +597,61 @@
             "description": "Event details",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Event" }
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
               }
             }
           },
-          "404": { "description": "Event not found" },
-          "401": { "description": "Unauthorized" }
+          "404": {
+            "description": "Event not found or doesn't belong to user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "notFound": {
+                    "summary": "Event not found",
+                    "value": {
+                      "error": "Event not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       },
       "put": {
         "summary": "Update an event",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Updates an existing event. Only provide fields you want to change. User can only update their own events.",
+        "tags": ["Events"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "description": "Event ID to update",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
           }
         ],
         "requestBody": {
@@ -218,13 +661,54 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "title": { "type": "string" },
-                  "startDate": { "type": "string", "format": "date-time" },
-                  "startTime": { "type": "string", "format": "date-time" },
-                  "endDate": { "type": "string", "format": "date-time" },
-                  "endTime": { "type": "string", "format": "date-time" },
-                  "location": { "type": "string" },
-                  "description": { "type": "string" }
+                  "title": {
+                    "type": "string",
+                    "description": "Updated event title",
+                    "example": "Updated Meeting Title"
+                  },
+                  "startDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Updated start date",
+                    "example": "2026-05-11T00:00:00Z"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Updated start time",
+                    "example": "2026-05-11T15:00:00Z"
+                  },
+                  "endDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Updated end date",
+                    "example": "2026-05-11T00:00:00Z"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Updated end time",
+                    "example": "2026-05-11T16:30:00Z"
+                  },
+                  "location": {
+                    "type": "string",
+                    "description": "Updated location",
+                    "example": "Conference Room A"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Updated description",
+                    "example": "Rescheduled meeting"
+                  }
+                }
+              },
+              "examples": {
+                "partial": {
+                  "summary": "Partial update",
+                  "value": {
+                    "title": "Rescheduled Meeting",
+                    "startTime": "2026-05-11T15:00:00Z"
+                  }
                 }
               }
             }
@@ -235,31 +719,144 @@
             "description": "Event updated successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Event" }
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
               }
             }
           },
-          "404": { "description": "Event not found" },
-          "401": { "description": "Unauthorized" }
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       },
       "delete": {
         "summary": "Delete an event",
-        "security": [{ "bearerAuth": [] }],
+        "description": "Deletes an event by ID. User can only delete their own events.",
+        "tags": ["Events"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "integer" }
+            "description": "Event ID to delete",
+            "schema": {
+              "type": "integer",
+              "example": 1
+            }
           }
         ],
         "responses": {
-          "204": { "description": "Event deleted successfully" },
-          "404": { "description": "Event not found" },
-          "401": { "description": "Unauthorized" }
+          "204": {
+            "description": "Event deleted successfully (no content returned)"
+          },
+          "404": {
+            "description": "Event not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
         }
       }
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User registration and login endpoints"
+    },
+    {
+      "name": "Events",
+      "description": "Calendar event management endpoints (require authentication)"
+    }
+  ],
+  "externalDocs": {
+    "description": "For frontend developers: Key implementation notes",
+    "url": "https://github.com/anomalyco/better-calender#frontend-notes"
+  },
+  "x-frontend-notes": {
+    "authentication": {
+      "tokenStorage": "Store JWT token in localStorage or sessionStorage after login/register",
+      "tokenFormat": "Include token in Authorization header: 'Bearer <token>'",
+      "tokenExpiry": "Tokens are valid for 7 days",
+      "redirectFlow": "If 401 response received, redirect user to login page and clear stored token"
+    },
+    "dateHandling": {
+      "format": "All dates must be ISO 8601 format (e.g., 2026-05-10T14:00:00Z)",
+      "allDayEvents": "Set start_time and end_time to null or omit them for all-day events",
+      "timedEvents": "Include start_time and end_time with full datetime for timed events",
+      "timezone": "Use UTC (Z suffix) or include timezone offset"
+    },
+    "eventTypes": {
+      "allDay": "Events without start_time/end_time are treated as all-day events",
+      "timed": "Events with start_time/end_time are timed events"
+    },
+    "errorHandling": {
+      "401": "Token invalid or expired - redirect to login",
+      "404": "Resource not found - show appropriate message",
+      "409": "Conflict (e.g., duplicate username) - show error to user",
+      "500": "Server error - show generic error message"
+    },
+    "futureFeatures": {
+      "aiExtraction": "POST /api/ai/extract - Extract events from pasted text using AI (OpenRouter)",
+      "calendarView": "Implement monthly/weekly calendar grid displaying events",
+      "eventConfirmation": "Modal/page to confirm/edit AI-extracted events before saving"
     }
   }
 }
