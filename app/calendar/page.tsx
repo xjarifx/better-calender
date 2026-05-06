@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { useCalendar, ViewMode } from '@/lib/calendar-context'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { PageLoading } from '@/components/ui/loading'
@@ -26,7 +27,7 @@ import {
   getDay,
   isSameMonth,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface CalendarEvent {
   id: number
@@ -40,15 +41,12 @@ interface CalendarEvent {
   color?: string
 }
 
-type ViewMode = 'day' | 'week' | 'month'
-
 export default function CalendarPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
+  const { viewMode, setViewMode, currentDate, setCurrentDate, navigateToday } = useCalendar()
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [deleteError, setDeleteError] = useState('')
@@ -141,10 +139,6 @@ export default function CalendarPage() {
     }
   }
 
-  const navigateToday = () => {
-    setCurrentDate(new Date())
-  }
-
   const switchToDayView = (date: Date) => {
     setCurrentDate(date)
     setViewMode('day')
@@ -158,47 +152,6 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <main className="flex-1 flex flex-col px-4 py-3 max-w-7xl mx-auto w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-            {(['day', 'week', 'month'] as ViewMode[]).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
-                  viewMode === mode
-                    ? 'bg-background shadow-sm text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {mode.charAt(0).toUpperCase() + mode.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={navigateToday}
-              className="text-sm px-3 py-1.5 rounded-lg border border-border text-foreground hover:bg-muted"
-            >
-              Today
-            </button>
-            <button
-              onClick={() => router.push('/events')}
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              List
-            </button>
-            <Button
-              size="sm"
-              onClick={() => router.push('/events/new')}
-              className="rounded-lg"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
         {/* Date Navigation */}
         <div className="flex items-center justify-between mb-4">
           <button

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { CalendarProvider } from "@/lib/calendar-context";
 import Sidebar from "@/components/Sidebar";
 
 const inter = Inter({
@@ -27,10 +28,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex">
         <AuthProvider>
-          <Sidebar />
-          <main className="flex-1 lg:ml-64 min-h-screen bg-background pt-[64px] lg:pt-0">
-            {children}
-          </main>
+          <CalendarProvider>
+            <Sidebar />
+            <main className="flex-1 lg:ml-64 min-h-screen bg-background pt-[64px] lg:pt-0">
+              {children}
+            </main>
+          </CalendarProvider>
         </AuthProvider>
       </body>
     </html>
