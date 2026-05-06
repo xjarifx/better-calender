@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import ExtractedEvents from '@/components/ExtractedEvents'
+import { Sparkles, ChevronDown } from 'lucide-react'
 
 // Recommended models configuration - easy to update for future models
 const RECOMMENDED_MODEL_IDS = ['openai/gpt-oss-120b', 'nvidia/nemotron-3-super']
@@ -86,7 +85,6 @@ export default function EventInputPage() {
   }
 
   const handleExtract = async () => {
-    // If already extracting, cancel the current request
     if (extracting && abortControllerRef.current) {
       abortControllerRef.current.controller.abort()
       setExtracting(false)
@@ -103,11 +101,9 @@ export default function EventInputPage() {
       return
     }
 
-    // Increment request ID for this new request
     const thisRequestId = requestIdRef.current + 1
     requestIdRef.current = thisRequestId
 
-    // Create AbortController for this request
     const controller = new AbortController()
     abortControllerRef.current = { controller, id: thisRequestId }
 
@@ -123,10 +119,7 @@ export default function EventInputPage() {
         signal: controller.signal,
       })
 
-      // Check if this is still the current request
-      if (abortControllerRef.current?.id !== thisRequestId) {
-        return // Stale request, ignore
-      }
+      if (abortControllerRef.current?.id !== thisRequestId) return
 
       if (!res.ok) {
         const data = await res.json()
@@ -135,10 +128,7 @@ export default function EventInputPage() {
 
       const data = await res.json()
 
-      // Check again if this is still the current request
-      if (abortControllerRef.current?.id !== thisRequestId) {
-        return // Stale request, ignore
-      }
+      if (abortControllerRef.current?.id !== thisRequestId) return
 
       if (data.events?.length === 0) {
         setError('No events found in the text. Try adding more details.')
@@ -146,10 +136,7 @@ export default function EventInputPage() {
         setExtractedEvents(data.events || [])
       }
     } catch (err) {
-      // Check if this is still the current request
-      if (abortControllerRef.current?.id !== thisRequestId) {
-        return // Stale request, ignore
-      }
+      if (abortControllerRef.current?.id !== thisRequestId) return
 
       if (err instanceof DOMException && err.name === 'AbortError') {
         setError('Extraction cancelled')
@@ -157,7 +144,6 @@ export default function EventInputPage() {
         setError(err instanceof Error ? err.message : 'Failed to extract events')
       }
     } finally {
-      // Only update state if this is still the current request
       if (abortControllerRef.current?.id === thisRequestId) {
         setExtracting(false)
         abortControllerRef.current = null
@@ -174,18 +160,23 @@ export default function EventInputPage() {
   if (!isAuthenticated) return null
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="text-muted-foreground">
-            ← Back
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => router.push('/calendar')}
+            className="text-muted-foreground hover:text-foreground text-sm"
+          >
+            ← Calendar
           </button>
-          <h1 className="text-2xl font-bold">AI Event Extraction</h1>
+          <h1 className="text-xl font-semibold flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            Extract Events
+          </h1>
         </div>
 
         {error && (
-          <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm mb-4">
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
             {error}
           </div>
         )}
@@ -193,20 +184,20 @@ export default function EventInputPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">
+              <label className="text-sm font-medium block mb-1.5">
                 Paste Event Notices
               </label>
               <textarea
-                className="w-full min-h-[300px] px-3 py-2 border rounded-md bg-background font-mono text-sm"
+                className="w-full min-h-[300px] px-3 py-2 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring/50 font-mono text-sm"
                 value={text}
                 onChange={e => setText(e.target.value)}
                 placeholder="Paste your event notices here...&#10;&#10;Example:&#10;Team Meeting&#10;January 15, 2026 at 2:00 PM&#10;Conference Room B&#10;&#10;Birthday Party&#10;Feb 20, 2026&#10;123 Main Street"
               />
             </div>
 
-            <div className="flex items-end gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
               <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">
+                <label className="text-sm font-medium block mb-1.5">
                   AI Model
                 </label>
                 {loading ? (
@@ -216,18 +207,16 @@ export default function EventInputPage() {
                     <button
                       type="button"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm text-left flex items-center justify-between"
+                      className="w-full px-3 py-2 border border-input rounded-lg bg-background text-sm text-left flex items-center justify-between"
                     >
                       <span>
                         {models.find(m => m.id === selectedModel)?.name || 'Select a model'}
                       </span>
-                      <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     </button>
 
                     {isDropdownOpen && (
-                      <div className="absolute z-50 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      <div className="absolute z-50 w-full mt-1 bg-background border border-input rounded-lg shadow-lg max-h-60 overflow-y-auto">
                         <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
                           Recommended
                         </div>
@@ -264,16 +253,19 @@ export default function EventInputPage() {
                   </div>
                 )}
               </div>
-              <Button
-                onClick={handleExtract}
-                disabled={loading || !selectedModel || (!extracting && !text.trim())}
-                variant={extracting ? 'destructive' : 'default'}
-              >
-                {extracting ? 'Cancel' : 'Extract Events'}
-              </Button>
-              <Button variant="outline" onClick={handleClear}>
-                Clear
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleExtract}
+                  disabled={loading || !selectedModel || (!extracting && !text.trim())}
+                  variant={extracting ? 'destructive' : 'default'}
+                  className="flex-1 sm:flex-none rounded-lg"
+                >
+                  {extracting ? 'Cancel' : 'Extract'}
+                </Button>
+                <Button variant="outline" onClick={handleClear} className="flex-1 sm:flex-none rounded-lg">
+                  Clear
+                </Button>
+              </div>
             </div>
           </div>
 

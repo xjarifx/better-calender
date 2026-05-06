@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
-import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert } from '@/components/ui/alert'
@@ -31,7 +30,7 @@ export default function SettingsPage() {
     try {
       const data = await api.getUserProfile()
       if (data.hasApiKey) {
-        setApiKey('••••••••••••••••••••••••••••••') // Masked display
+        setApiKey('••••••••••••••••••••••••••••••')
       }
     } catch (err) {
       setError('Failed to load profile')
@@ -46,7 +45,6 @@ export default function SettingsPage() {
     setSaving(true)
 
     try {
-      // If user didn't change the masked key, don't update
       if (apiKey === '••••••••••••••••••••••••••••••') {
         setError('API key already saved')
         setSaving(false)
@@ -81,10 +79,11 @@ export default function SettingsPage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="max-w-7xl mx-auto p-4">
-          <div className="text-center py-12">Loading...</div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            Loading...
+          </div>
         </main>
       </div>
     )
@@ -93,27 +92,31 @@ export default function SettingsPage() {
   if (!isAuthenticated) return null
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="text-muted-foreground">
-            ← Back
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => router.push('/calendar')}
+            className="text-muted-foreground hover:text-foreground text-sm"
+          >
+            ← Calendar
           </button>
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-xl font-semibold">Settings</h1>
         </div>
 
         {error && (
-          <Alert className="mb-4" variant="destructive">{error}</Alert>
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
+            {error}
+          </div>
         )}
         {success && (
-          <div className="bg-green-50 text-green-700 p-3 rounded-md text-sm mb-4">
+          <div className="bg-green-500/10 text-green-600 p-3 rounded-lg text-sm mb-4">
             {success}
           </div>
         )}
 
         <div className="max-w-2xl">
-          <div className="border rounded-lg p-6 space-y-4">
+          <div className="rounded-lg border p-6 space-y-4">
             <div>
               <h2 className="text-lg font-semibold mb-2">OpenRouter API Key</h2>
               <p className="text-sm text-muted-foreground mb-4">
@@ -123,7 +126,7 @@ export default function SettingsPage() {
                   href="https://openrouter.ai/keys"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary underline"
+                  className="text-foreground underline"
                 >
                   openrouter.ai/keys
                 </a>
@@ -131,13 +134,13 @@ export default function SettingsPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">API Key</label>
+              <label className="text-sm font-medium block mb-1.5">API Key</label>
               <Input
                 type="password"
                 value={apiKey}
                 onChange={e => setApiKey(e.target.value)}
                 placeholder="sk-or-v1-..."
-                className="font-mono"
+                className="font-mono rounded-lg"
               />
               <p className="text-xs text-muted-foreground mt-1">
                 Your API key is stored securely and only used for AI requests.
@@ -145,17 +148,17 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} className="rounded-lg">
                 {saving ? 'Saving...' : 'Save API Key'}
               </Button>
               {hasApiKey && (
-                <Button variant="outline" onClick={handleRemove} disabled={saving}>
+                <Button variant="outline" onClick={handleRemove} disabled={saving} className="rounded-lg">
                   Remove Key
                 </Button>
               )}
             </div>
 
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground">
                 <strong>Status:</strong>{' '}
                 {hasApiKey ? (

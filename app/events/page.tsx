@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
-import Navbar from '@/components/Navbar'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert } from '@/components/ui/alert'
+import { format, parseISO } from 'date-fns'
 
 interface Event {
   id: number
@@ -18,6 +16,7 @@ interface Event {
   end_time: string | null
   location?: string
   description?: string
+  color?: string
 }
 
 export default function EventsPage() {
@@ -60,108 +59,109 @@ export default function EventsPage() {
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'No date'
-    const date = new Date(dateStr)
-    if (isNaN(date.getTime())) {
+    try {
+      return format(parseISO(dateStr), 'MMM d, yyyy')
+    } catch {
       return 'Invalid Date'
     }
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
   }
 
   const formatTime = (timeStr: string | null) => {
     if (!timeStr) return null
-    return new Date(timeStr).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-    })
+    try {
+      return format(parseISO(timeStr), 'h:mm a')
+    } catch {
+      return null
+    }
   }
 
   if (!isAuthenticated) return null
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.push('/calendar')}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground text-sm"
             >
-              ← Back to Calendar
+              ← Calendar
             </button>
-            <h1 className="text-2xl font-bold">All Events</h1>
+            <h1 className="text-xl font-semibold">All Events</h1>
           </div>
-          <Button onClick={() => router.push('/events/new')}>
-            New Event
+          <Button
+            size="sm"
+            onClick={() => router.push('/events/new')}
+            className="rounded-lg"
+          >
+            + New
           </Button>
         </div>
 
         {error && (
-          <Alert variant="destructive" className="mb-4">{error}</Alert>
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
+            {error}
+          </div>
         )}
         {deleteError && (
-          <Alert variant="destructive" className="mb-4">{deleteError}</Alert>
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
+            {deleteError}
+          </div>
         )}
 
         {loading ? (
-          <div className="text-center py-12">Loading events...</div>
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            Loading events...
+          </div>
         ) : events.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
             No events yet. Create your first event!
           </div>
         ) : (
           <div className="space-y-3">
-            {events.map(event => (
-              <div
-                key={event.id}
-                className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{event.title}</h3>
-                    <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                      <span>
-                        {formatDate(event.start_date)}
-                        {formatTime(event.start_time) && (
-                          <span> at {formatTime(event.start_time)}</span>
-                        )}
-                      </span>
+            {events.map(event => {
+              const eventColor = event.color || '#818CF8'
+              return (
+                <div
+                  key={event.id}
+                  className="rounded-lg p-3 cursor-pointer hover:opacity-90 transition-opacity"
+                  style={{
+                    backgroundColor: eventColor + '15',
+                    borderLeft: `3px solid ${eventColor}`,
+                  }}
+                  onClick={() => router.push(`/events/${event.id}`)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-sm">{event.title}</h3>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <span>
+                          {formatDate(event.start_date)}
+                          {formatTime(event.start_time) && (
+                            <span> at {formatTime(event.start_time)}</span>
+                          )}
+                        </span>
+                      </div>
                       {event.location && (
-                        <>
-                          <span>•</span>
-                          <span>{event.location}</span>
-                        </>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          📍 {event.location}
+                        </div>
                       )}
                     </div>
-                    {event.description && (
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                        {event.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => router.push(`/events/${event.id}`)}
-                    >
-                      View
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(event.id, event.title)}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDelete(event.id, event.title)
+                      }}
+                      className="text-destructive hover:text-destructive/80 text-xs ml-2"
                     >
                       Delete
-                    </Button>
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>

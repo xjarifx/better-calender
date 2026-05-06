@@ -76,66 +76,94 @@ export default function EventForm({ mode, eventId, initialData }: EventFormProps
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
       {error && (
-        <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+        <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
       <div>
-        <label className="text-sm font-medium">Title *</label>
-        <Input value={title} onChange={e => setTitle(e.target.value)} required />
+        <label className="text-sm font-medium block mb-1.5">Title *</label>
+        <Input
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          required
+          className="rounded-lg"
+        />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium">Start Date *</label>
+          <label className="text-sm font-medium block mb-1.5">Start Date *</label>
           <Input
             type="date"
             value={startDate}
             onChange={e => setStartDate(e.target.value)}
             required
+            className="rounded-lg"
           />
         </div>
         <div>
-          <label className="text-sm font-medium">Start Time (optional)</label>
+          <label className="text-sm font-medium block mb-1.5">Start Time</label>
           <Input
             type="time"
             value={startTime}
             onChange={e => setStartTime(e.target.value)}
+            className="rounded-lg"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-medium">End Date</label>
-          <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <label className="text-sm font-medium block mb-1.5">End Date</label>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            className="rounded-lg"
+          />
         </div>
         <div>
-          <label className="text-sm font-medium">End Time</label>
-          <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+          <label className="text-sm font-medium block mb-1.5">End Time</label>
+          <Input
+            type="time"
+            value={endTime}
+            onChange={e => setEndTime(e.target.value)}
+            className="rounded-lg"
+          />
         </div>
       </div>
 
       <div>
-        <label className="text-sm font-medium">Location</label>
-        <Input value={location} onChange={e => setLocation(e.target.value)} />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium">Description</label>
-        <textarea
-          className="w-full min-h-[100px] px-3 py-2 border rounded-md bg-background"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+        <label className="text-sm font-medium block mb-1.5">Location</label>
+        <Input
+          value={location}
+          onChange={e => setLocation(e.target.value)}
+          className="rounded-lg"
+          placeholder="Add location"
         />
       </div>
 
-      <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Saving...' : mode === 'edit' ? 'Update Event' : 'Create Event'}
+      <div>
+        <label className="text-sm font-medium block mb-1.5">Description</label>
+        <textarea
+          className="w-full min-h-[100px] px-3 py-2 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-ring/50"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          placeholder="Add description"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-2">
+        <Button type="submit" disabled={loading} className="flex-1 rounded-lg">
+          {loading ? 'Saving...' : mode === 'edit' ? 'Update' : 'Create'}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push('/calendar')}
+          className="flex-1 rounded-lg"
+        >
           Cancel
         </Button>
       </div>

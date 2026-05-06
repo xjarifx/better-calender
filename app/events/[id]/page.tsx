@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { api } from '@/lib/api'
-import Navbar from '@/components/Navbar'
 import EventForm from '@/components/EventForm'
 import { Button } from '@/components/ui/button'
-import { Alert } from '@/components/ui/alert'
+import { format, parseISO } from 'date-fns'
 
 export default function EventDetailPage() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -55,34 +54,38 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="text-center py-12">Loading...</div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          Loading...
+        </div>
       </div>
     )
   }
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="max-w-7xl mx-auto p-4">
-          <Alert variant="destructive">{error || 'Event not found'}</Alert>
-        </div>
+      <div className="min-h-screen bg-background flex flex-col">
+        <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm">
+            {error || 'Event not found'}
+          </div>
+        </main>
       </div>
     )
   }
 
   if (mode === 'edit') {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <main className="max-w-7xl mx-auto p-4">
-          <div className="flex items-center gap-4 mb-6">
-            <button onClick={() => setMode('view')} className="text-muted-foreground">
+      <div className="min-h-screen bg-background flex flex-col">
+        <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => setMode('view')}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
               ← Back
             </button>
-            <h1 className="text-2xl font-bold">Edit Event</h1>
+            <h1 className="text-xl font-semibold">Edit Event</h1>
           </div>
           <EventForm
             mode="edit"
@@ -102,60 +105,82 @@ export default function EventDetailPage() {
     )
   }
 
+  const eventColor = event.color || '#818CF8'
+
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="text-muted-foreground">
-            ← Back
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => router.push('/calendar')}
+            className="text-muted-foreground hover:text-foreground text-sm"
+          >
+            ← Calendar
           </button>
-          <h1 className="text-2xl font-bold">{event.title}</h1>
         </div>
 
-        <div className="max-w-lg space-y-4">
-          <div>
-            <span className="text-sm text-muted-foreground">Date: </span>
-            {new Date(event.start_date).toLocaleDateString()}
-            {event.start_time && (
-              <span> at {new Date(event.start_time).toLocaleTimeString()}</span>
+        <div
+          className="rounded-lg p-4 mb-4"
+          style={{
+            backgroundColor: eventColor + '15',
+            borderLeft: `3px solid ${eventColor}`,
+          }}
+        >
+          <h1 className="text-xl font-semibold mb-3">{event.title}</h1>
+
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <div>
+              <span className="text-foreground font-medium">Date: </span>
+              {format(parseISO(event.start_date), 'PPP')}
+              {event.start_time && (
+                <span> at {format(parseISO(event.start_time), 'p')}</span>
+              )}
+            </div>
+
+            {event.end_date && (
+              <div>
+                <span className="text-foreground font-medium">End: </span>
+                {format(parseISO(event.end_date), 'PPP')}
+                {event.end_time && (
+                  <span> at {format(parseISO(event.end_time), 'p')}</span>
+                )}
+              </div>
+            )}
+
+            {event.location && (
+              <div>
+                <span className="text-foreground font-medium">📍 Location: </span>
+                {event.location}
+              </div>
             )}
           </div>
 
-          {event.end_date && (
-            <div>
-              <span className="text-sm text-muted-foreground">End: </span>
-              {new Date(event.end_date).toLocaleDateString()}
-              {event.end_time && (
-                <span> at {new Date(event.end_time).toLocaleTimeString()}</span>
-              )}
-            </div>
-          )}
-
-          {event.location && (
-            <div>
-              <span className="text-sm text-muted-foreground">Location: </span>
-              {event.location}
-            </div>
-          )}
-
           {event.description && (
-            <div>
-              <span className="text-sm text-muted-foreground">Description: </span>
-              <p className="whitespace-pre-wrap">{event.description}</p>
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-sm text-foreground whitespace-pre-wrap">
+                {event.description}
+              </p>
             </div>
           )}
+        </div>
 
-          {deleteError && (
-            <Alert variant="destructive">{deleteError}</Alert>
-          )}
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={() => setMode('edit')}>Edit</Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete
-            </Button>
+        {deleteError && (
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
+            {deleteError}
           </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button onClick={() => setMode('edit')} className="flex-1">
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            className="flex-1"
+          >
+            Delete
+          </Button>
         </div>
       </main>
     </div>

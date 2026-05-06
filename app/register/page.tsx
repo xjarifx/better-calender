@@ -7,7 +7,6 @@ import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 
 export default function RegisterPage() {
@@ -24,8 +23,7 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const data = await api.register(username, password)
-      // Server sets cookies, verify auth state
+      await api.register(username, password)
       await refreshAuth()
       router.push('/calendar')
     } catch (err) {
@@ -36,45 +34,50 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Register</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <Alert className="mb-4" variant="destructive">{error}</Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Username</label>
-              <Input
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Password</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Registering...' : 'Register'}
-            </Button>
-          </form>
-          <p className="text-center text-sm mt-4">
-            Already have an account?{' '}
-            <Link href="/login" className="text-primary underline">
-              Login
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <div className="w-full max-w-sm">
+        <h1 className="text-2xl font-semibold text-center mb-6">Register</h1>
+
+        {error && (
+          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm font-medium block mb-1.5">Username</label>
+            <Input
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+              className="rounded-lg"
+              placeholder="Choose username"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium block mb-1.5">Password</label>
+            <Input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              className="rounded-lg"
+              placeholder="Choose password"
+            />
+          </div>
+          <Button type="submit" className="w-full rounded-lg" disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
+          </Button>
+        </form>
+
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          Already have an account?{' '}
+          <Link href="/login" className="text-foreground underline">
+            Login
+          </Link>
+        </p>
+      </div>
     </div>
   )
 }

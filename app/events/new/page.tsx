@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import Navbar from '@/components/Navbar'
 import EventForm from '@/components/EventForm'
 
 export default function NewEventPage() {
@@ -16,14 +15,16 @@ export default function NewEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-7xl mx-auto p-4">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => router.back()} className="text-muted-foreground">
-            ← Back
+    <div className="min-h-screen bg-background flex flex-col">
+      <main className="flex-1 px-4 py-3 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={() => router.push('/calendar')}
+            className="text-muted-foreground hover:text-foreground text-sm"
+          >
+            ← Calendar
           </button>
-          <h1 className="text-2xl font-bold">New Event</h1>
+          <h1 className="text-xl font-semibold">New Event</h1>
         </div>
         <EventForm mode="create" />
       </main>
