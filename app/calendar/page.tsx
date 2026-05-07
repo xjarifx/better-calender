@@ -482,15 +482,15 @@ function WeekView({
         </div>
       </div>
 
-      {allDayEvents.length > 0 && (
-        <div className="border border-gray-300 dark:border-gray-600 border-b-0 rounded-t-lg p-2 bg-muted/30">
-          <div className="flex">
-            <div className="w-16 flex-shrink-0 text-xs font-medium text-muted-foreground pt-1">All Day</div>
+       {allDayEvents.length > 0 && (
+        <div className="border border-gray-300 dark:border-gray-600 border-b-0 rounded-t-lg pt-1 pb-2 bg-muted/30">
+          <div className="flex px-2">
+            <div className="w-16 flex-shrink-0 text-xs font-medium text-muted-foreground text-right pt-1 pr-2">All Day</div>
             <div className="flex-1 grid grid-cols-7 gap-1">
-              {days.map(day => {
+              {days.map((day, idx) => {
                 const dayAllDayEvents = allDayEvents.filter(e => isSameDay(new Date(e.start_date), day))
                 return (
-                  <div key={day.toISOString()} className="min-h-[30px]">
+                  <div key={day.toISOString()} className={`min-h-[30px] ${idx < 6 ? 'border-r border-gray-100 dark:border-gray-800' : ''}`}>
                     {dayAllDayEvents.map(event => (
                       <div
                         key={event.id}
@@ -510,7 +510,7 @@ function WeekView({
       )}
 
       <div className="flex-1 overflow-y-auto border border-gray-300 dark:border-gray-600 border-t-0 rounded-b-lg">
-        <div className="flex">
+        <div className="flex px-2">
           <div className="w-16 flex-shrink-0">
             {Array.from({ length: 24 }, (_, i) => (
               <div key={i} className="h-[60px] text-xs text-muted-foreground text-right pr-2 pt-1 border-b border-gray-100 dark:border-gray-800">
