@@ -33,7 +33,7 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [rightPanelMode, setRightPanelMode] =
-    useState<RightPanelMode>("day-view");
+    useState<RightPanelMode>("empty");
   const [firstDayOfWeek, setFirstDayOfWeek] = useState(0);
 
   useEffect(() => {

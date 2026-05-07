@@ -5,6 +5,7 @@ import { useCalendar } from "@/lib/calendar-context";
 import { useAuth } from "@/lib/auth-context";
 import EventForm from "./EventForm";
 import EventCard from "./EventCard";
+import EmptyStatePet from "./EmptyStatePet";
 import { Button } from "./ui/button";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -66,7 +67,7 @@ export default function RightPanel() {
   return (
     <aside className="fixed right-0 top-0 h-full z-30 w-[400px] border-l border-border bg-right-panel-bg flex flex-col">
       <div className="flex-1 overflow-y-auto p-4">
-        {rightPanelMode === "empty" && <div />}
+        {rightPanelMode === "empty" && <EmptyStatePet />}
 
         {rightPanelMode === "extracted-events" && (
           <div>
