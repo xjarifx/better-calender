@@ -1,232 +1,304 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 function formatTimeForInput(timeStr: string): string {
-  if (!timeStr) return ''
-  const date = new Date(timeStr)
-  if (isNaN(date.getTime())) return ''
-  return date.toISOString().slice(11, 16)
+  if (!timeStr) return "";
+  const date = new Date(timeStr);
+  if (isNaN(date.getTime())) return "";
+  return date.toISOString().slice(11, 16);
 }
 
 export interface ExtractedEvent {
-  title: string
-  startDate: string
-  startTime?: string
-  endDate?: string
-  endTime?: string
-  location?: string
-  description?: string
+  title: string;
+  startDate: string;
+  startTime?: string;
+  endDate?: string;
+  endTime?: string;
+  location?: string;
+  description?: string;
 }
 
 interface ExtractedEventsProps {
-  events: ExtractedEvent[]
-  onClear: () => void
+  events: ExtractedEvent[];
+  onClear: () => void;
 }
 
-export default function ExtractedEvents({ events, onClear }: ExtractedEventsProps) {
-  const router = useRouter()
+export default function ExtractedEvents({
+  events,
+  onClear,
+}: ExtractedEventsProps) {
+  const router = useRouter();
   const [editableEvents, setEditableEvents] = useState<ExtractedEvent[]>(
-    events.map(e => ({ ...e }))
-  )
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+    events.map((e) => ({ ...e })),
+  );
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
-  const updateEvent = (index: number, field: keyof ExtractedEvent, value: string) => {
-    setEditableEvents(prev => {
-      const updated = [...prev]
-      updated[index] = { ...updated[index], [field]: value || undefined }
-      return updated
-    })
-  }
+  useEffect(() => {
+    setEditableEvents(events.map((event) => ({ ...event })));
+    setError("");
+  }, [events]);
+
+  const updateEvent = (
+    index: number,
+    field: keyof ExtractedEvent,
+    value: string,
+  ) => {
+    setEditableEvents((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value || undefined };
+      return updated;
+    });
+  };
 
   const removeEvent = (index: number) => {
-    setEditableEvents(prev => prev.filter((_, i) => i !== index))
-  }
+    setEditableEvents((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSaveAll = async () => {
-    const invalid = editableEvents.some(e => !e.title || !e.startDate)
+    const invalid = editableEvents.some((e) => !e.title || !e.startDate);
     if (invalid) {
-      setError('All events must have a title and start date')
-      return
+      setError("All events must have a title and start date");
+      return;
     }
 
-    setSaving(true)
-    setError('')
+    setSaving(true);
+    setError("");
 
-    let saved = 0
     for (const event of editableEvents) {
       try {
         const eventData: Record<string, unknown> = {
           title: event.title,
           startDate: event.startDate,
-        }
-        if (event.startTime) eventData.startTime = event.startTime
-        if (event.endDate) eventData.endDate = event.endDate
-        if (event.endTime) eventData.endTime = event.endTime
-        if (event.location) eventData.location = event.location
-        if (event.description) eventData.description = event.description
+        };
+        if (event.startTime) eventData.startTime = event.startTime;
+        if (event.endDate) eventData.endDate = event.endDate;
+        if (event.endTime) eventData.endTime = event.endTime;
+        if (event.location) eventData.location = event.location;
+        if (event.description) eventData.description = event.description;
 
-        await api.createEvent(eventData)
-        saved++
+        await api.createEvent(eventData);
       } catch (err) {
-        setError(`Failed to save "${event.title}": ${err instanceof Error ? err.message : 'Unknown error'}`)
-        setSaving(false)
-        return
+        setError(
+          `Failed to save "${event.title}": ${err instanceof Error ? err.message : "Unknown error"}`,
+        );
+        setSaving(false);
+        return;
       }
     }
 
-    router.push('/calendar')
-  }
+    router.push("/calendar");
+  };
 
   if (editableEvents.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         No events to display
       </div>
-    )
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">
-          Extracted Events ({editableEvents.length})
-        </h2>
-        <Button variant="outline" size="sm" onClick={onClear}>
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">
+            Extracted Events ({editableEvents.length})
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Review the AI results before saving them.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onClear}
+          className="rounded-xl"
+        >
           Clear All
         </Button>
       </div>
 
       {error && (
-        <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+        <div className="rounded-xl border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="space-y-3">
         {editableEvents.map((event, index) => (
-          <div key={index} className="border rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-start">
-              <span className="text-xs font-medium text-muted-foreground">
-                Event {index + 1}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeEvent(index)}
-                className="text-destructive"
-              >
-                Remove
-              </Button>
-            </div>
+          <Card
+            key={index}
+            size="sm"
+            className={cn("rounded-2xl border-border/70 bg-card/80 py-0")}
+          >
+            <CardHeader className="border-b border-border/60 px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-sm font-semibold">
+                    Event {index + 1}
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Edit extracted details before saving.
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeEvent(index)}
+                  className="h-8 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  Delete
+                </Button>
+              </div>
+            </CardHeader>
 
-            <div>
-              <label className="text-xs font-medium">Title *</label>
-              <input
-                type="text"
-                className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                value={event.title}
-                onChange={e => updateEvent(index, 'title', e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            <CardContent className="space-y-3 px-4 py-4">
               <div>
-                <label className="text-xs font-medium">Start Date *</label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                  value={event.startDate}
-                  onChange={e => updateEvent(index, 'startDate', e.target.value)}
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Title *
+                </label>
+                <Input
+                  value={event.title}
+                  onChange={(e) => updateEvent(index, "title", e.target.value)}
                   required
+                  className="h-9 rounded-xl"
                 />
               </div>
-              <div>
-                <label className="text-xs font-medium">Start Time</label>
-                <input
-                  type="time"
-                  className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                  value={event.startTime ? formatTimeForInput(event.startTime) : ''}
-                  onChange={e => {
-                    if (e.target.value) {
-                      const [hours, minutes] = e.target.value.split(':')
-                      const date = new Date(event.startDate)
-                      date.setHours(parseInt(hours), parseInt(minutes))
-                      updateEvent(index, 'startTime', date.toISOString())
-                    } else {
-                      updateEvent(index, 'startTime', '')
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Start Date *
+                  </label>
+                  <Input
+                    type="date"
+                    value={event.startDate}
+                    onChange={(e) =>
+                      updateEvent(index, "startDate", e.target.value)
                     }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium">End Date</label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                  value={event.endDate || ''}
-                  onChange={e => updateEvent(index, 'endDate', e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium">End Time</label>
-                <input
-                  type="time"
-                  className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                  value={event.endTime ? formatTimeForInput(event.endTime) : ''}
-                  onChange={e => {
-                    if (e.target.value) {
-                      const endDate = event.endDate || event.startDate
-                      const [hours, minutes] = e.target.value.split(':')
-                      const date = new Date(endDate)
-                      date.setHours(parseInt(hours), parseInt(minutes))
-                      updateEvent(index, 'endTime', date.toISOString())
-                    } else {
-                      updateEvent(index, 'endTime', '')
+                    required
+                    className="h-9 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    Start Time
+                  </label>
+                  <Input
+                    type="time"
+                    value={
+                      event.startTime ? formatTimeForInput(event.startTime) : ""
                     }
-                  }}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const [hours, minutes] = e.target.value.split(":");
+                        const date = new Date(event.startDate);
+                        date.setHours(parseInt(hours), parseInt(minutes));
+                        updateEvent(index, "startTime", date.toISOString());
+                      } else {
+                        updateEvent(index, "startTime", "");
+                      }
+                    }}
+                    className="h-9 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    End Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={event.endDate || ""}
+                    onChange={(e) =>
+                      updateEvent(index, "endDate", e.target.value)
+                    }
+                    className="h-9 rounded-xl"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                    End Time
+                  </label>
+                  <Input
+                    type="time"
+                    value={
+                      event.endTime ? formatTimeForInput(event.endTime) : ""
+                    }
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const endDate = event.endDate || event.startDate;
+                        const [hours, minutes] = e.target.value.split(":");
+                        const date = new Date(endDate);
+                        date.setHours(parseInt(hours), parseInt(minutes));
+                        updateEvent(index, "endTime", date.toISOString());
+                      } else {
+                        updateEvent(index, "endTime", "");
+                      }
+                    }}
+                    className="h-9 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Location
+                </label>
+                <Input
+                  value={event.location || ""}
+                  onChange={(e) =>
+                    updateEvent(index, "location", e.target.value)
+                  }
+                  className="h-9 rounded-xl"
                 />
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-medium">Location</label>
-              <input
-                type="text"
-                className="w-full px-3 py-1.5 text-sm border rounded-md bg-background"
-                value={event.location || ''}
-                onChange={e => updateEvent(index, 'location', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium">Description</label>
-              <textarea
-                className="w-full px-3 py-1.5 text-sm border rounded-md bg-background min-h-[60px]"
-                value={event.description || ''}
-                onChange={e => updateEvent(index, 'description', e.target.value)}
-              />
-            </div>
-          </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+                  Description
+                </label>
+                <textarea
+                  className="min-h-[76px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-shadow focus:ring-2 focus:ring-ring/50"
+                  value={event.description || ""}
+                  onChange={(e) =>
+                    updateEvent(index, "description", e.target.value)
+                  }
+                />
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      <div className="flex gap-2 pt-4 border-t">
-        <Button onClick={handleSaveAll} disabled={saving || editableEvents.length === 0}>
-          {saving ? 'Saving...' : `Save All ${editableEvents.length} Event(s)`}
+      <div className="flex gap-2 rounded-2xl border border-border/70 bg-card/60 p-4">
+        <Button
+          onClick={handleSaveAll}
+          disabled={saving || editableEvents.length === 0}
+          className="h-10 rounded-xl"
+        >
+          {saving ? "Saving..." : `Save All ${editableEvents.length} Event(s)`}
         </Button>
-        <Button variant="outline" onClick={onClear}>
+        <Button variant="outline" onClick={onClear} className="h-10 rounded-xl">
           Cancel
         </Button>
       </div>
     </div>
-  )
+  );
 }
