@@ -86,7 +86,7 @@ export default function EventDetailPage() {
               <ArrowLeft className="h-4 w-4" />
               Back
             </button>
-            <h1 className="text-xl font-semibold">Edit Event</h1>
+            <h1 className="text-2xl font-semibold">Edit Event</h1>
           </div>
           <EventForm
             mode="edit"
@@ -132,7 +132,7 @@ export default function EventDetailPage() {
 
           <div className="space-y-2 text-sm text-muted-foreground">
             <div>
-              <span className="text-foreground font-medium">Date: </span>
+              <span className="text-foreground font-semibold">Date: </span>
               {format(parseISO(event.start_date), 'PPP')}
               {event.start_time && (
                 <span> at {format(parseISO(event.start_time), 'p')}</span>
@@ -141,7 +141,7 @@ export default function EventDetailPage() {
 
             {event.end_date && (
               <div>
-                <span className="text-foreground font-medium">End: </span>
+                <span className="text-foreground font-semibold">End: </span>
                 {format(parseISO(event.end_date), 'PPP')}
                 {event.end_time && (
                   <span> at {format(parseISO(event.end_time), 'p')}</span>
@@ -151,7 +151,7 @@ export default function EventDetailPage() {
 
             {event.location && (
               <div>
-                <span className="text-foreground font-medium">📍 Location: </span>
+                <span className="text-foreground font-semibold">📍 Location: </span>
                 {event.location}
               </div>
             )}

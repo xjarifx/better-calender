@@ -150,7 +150,7 @@ export default function ExtractedEvents({
             <CardHeader className="border-b border-border/60 px-4 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <CardTitle className="text-sm font-semibold">
+                  <CardTitle className="text-sm font-medium">
                     Event {index + 1}
                   </CardTitle>
                   <CardDescription className="text-xs">

@@ -172,7 +172,7 @@ export default function RightPanel() {
             </div>
 
             <div className="mt-4">
-              <h4 className="text-sm font-medium mb-2">Edit Event</h4>
+              <h4 className="text-sm font-semibold mb-2">Edit Event</h4>
               <EventForm
                 mode="edit"
                 eventId={String(selectedEvent.id)}

@@ -132,7 +132,7 @@ export default function SearchModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl overflow-hidden border-border/80 bg-popover/95 p-0 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <DialogHeader className="border-b border-border/70 px-6 py-5">
-          <DialogTitle className="text-lg">Search events</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">Search events</DialogTitle>
           <DialogDescription>
             Type a title to filter matching events and open one in the right
             panel.
@@ -164,7 +164,7 @@ export default function SearchModal({
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold text-foreground">
+                        <div className="truncate text-sm font-medium text-foreground">
                           {event.title}
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground">

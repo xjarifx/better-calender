@@ -152,7 +152,7 @@ export default function EventsPage() {
               <ArrowLeft className="h-4 w-4" />
               Calendar
             </button>
-            <h1 className="text-xl font-semibold">All Events</h1>
+            <h1 className="text-2xl font-semibold">All Events</h1>
           </div>
         </div>
 

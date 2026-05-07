@@ -150,8 +150,8 @@ function DayCell({
     >
       <div className="mb-2 flex items-center justify-between">
         <span
-          className={cn(
-            "text-xs font-medium tabular-nums",
+className={cn(
+        "text-xs font-semibold tabular-nums",
             isSameDay(date, new Date()) &&
               "rounded-full bg-primary px-2 py-0.5 text-primary-foreground",
           )}
@@ -216,7 +216,7 @@ function DraggableEventBar({
       {...listeners}
     >
       <span className="h-2.5 w-2.5 rounded-full bg-current/80" />
-      <span className="min-w-0 flex-1 truncate font-medium">{event.title}</span>
+      <span className="min-w-0 flex-1 truncate font-semibold">{event.title}</span>
       {startTime && (
         <span className="shrink-0 text-current/80">{startTime}</span>
       )}

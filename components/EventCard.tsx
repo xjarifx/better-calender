@@ -31,7 +31,7 @@ export default function EventCard({
       <CardContent>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <CardTitle className="text-sm">{event.title}</CardTitle>
+            <CardTitle className="text-sm font-semibold">{event.title}</CardTitle>
             <CardDescription className="text-xs">
               {start} {time && `· ${time}`}
             </CardDescription>

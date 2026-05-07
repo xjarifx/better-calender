@@ -235,7 +235,7 @@ export default function SettingsPage() {
             <ArrowLeft className="h-4 w-4" />
             Calendar
           </button>
-          <h1 className="text-xl font-semibold">Settings</h1>
+          <h1 className="text-2xl font-semibold">Settings</h1>
         </div>
 
         {error && (
@@ -265,7 +265,7 @@ export default function SettingsPage() {
           </div>
         )}
 
-        <div className="max-w-2xl space-y-6">
+        <div className="space-y-6">
           {/* API Key */}
           <div className="rounded-lg border p-6 space-y-4">
             <h2 className="text-lg font-semibold">OpenRouter API Key</h2>

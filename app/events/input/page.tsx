@@ -287,7 +287,7 @@ export default function EventInputPage() {
             <ArrowLeft className="h-4 w-4" />
             Calendar
           </button>
-          <h1 className="text-xl font-semibold flex items-center gap-2">
+          <h1 className="text-2xl font-semibold flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Extract Events
           </h1>
@@ -340,7 +340,7 @@ export default function EventInputPage() {
 
                   {isDropdownOpen && (
                     <div className="absolute z-50 w-full mt-1 bg-background border border-input rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">
+                      <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50">
                         Recommended
                       </div>
                       {models
@@ -349,14 +349,14 @@ export default function EventInputPage() {
                           <div
                             key={model.id}
                             onClick={() => { setSelectedModel(model.id); setIsDropdownOpen(false) }}
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-muted ${selectedModel === model.id ? 'bg-muted/50 font-medium' : ''}`}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-muted ${selectedModel === model.id ? 'bg-muted/50 font-normal' : ''}`}
                           >
                             {model.name} ({model.context} context)
                           </div>
                         ))
                       }
 
-                      <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 border-t border-input">
+                      <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground bg-muted/50 border-t border-input">
                         All AI Models
                       </div>
                       {models
@@ -365,7 +365,7 @@ export default function EventInputPage() {
                           <div
                             key={model.id}
                             onClick={() => { setSelectedModel(model.id); setIsDropdownOpen(false) }}
-                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-muted ${selectedModel === model.id ? 'bg-muted/50 font-medium' : ''}`}
+                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-muted ${selectedModel === model.id ? 'bg-muted/50 font-normal' : ''}`}
                           >
                             {model.name} ({model.context} context)
                           </div>
