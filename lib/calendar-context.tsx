@@ -5,15 +5,13 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import type { events as Event } from "@prisma/client";
+import { api } from "@/lib/api";
 
-export type RightPanelMode =
-  | "ai-input"
-  | "day-view"
-  | "event-details"
-  | "extracted-events";
+export type RightPanelMode = "day-view" | "event-details" | "extracted-events";
 
 interface CalendarContextType {
   selectedDate: Date | null;
@@ -23,6 +21,8 @@ interface CalendarContextType {
   rightPanelMode: RightPanelMode;
   setRightPanelMode: (mode: RightPanelMode) => void;
   navigateToday: () => void;
+  firstDayOfWeek: number;
+  setFirstDayOfWeek: (day: number) => void;
 }
 
 const CalendarContext = createContext<CalendarContextType | undefined>(
@@ -33,7 +33,18 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [rightPanelMode, setRightPanelMode] =
-    useState<RightPanelMode>("ai-input");
+    useState<RightPanelMode>("day-view");
+  const [firstDayOfWeek, setFirstDayOfWeek] = useState(0);
+
+  useEffect(() => {
+    api
+      .getUserProfile()
+      .then((data) => {
+        if (data.firstDayOfWeek !== undefined)
+          setFirstDayOfWeek(data.firstDayOfWeek);
+      })
+      .catch(() => {});
+  }, []);
 
   const navigateToday = useCallback(() => {
     setSelectedDate(new Date());
@@ -49,6 +60,8 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
         rightPanelMode,
         setRightPanelMode,
         navigateToday,
+        firstDayOfWeek,
+        setFirstDayOfWeek,
       }}
     >
       {children}

@@ -28,7 +28,7 @@ export default function RootLayout({
       <body className="min-h-full bg-background text-foreground antialiased">
         <AuthProvider>
           <CalendarProvider>
-            <div className="relative min-h-screen w-full [--sidebar-width:16rem] [&:has(.sidebar-collapsed)]:[--sidebar-width:4rem]">
+            <div className="relative min-h-screen w-full [--sidebar-width:16rem]">
               <Sidebar />
               <main className="min-h-screen bg-background ml-[var(--sidebar-width)] mr-[400px] transition-all duration-300">
                 {children}

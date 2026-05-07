@@ -16,11 +16,11 @@ export default function EventCard({
   onClick,
   showActions,
 }: EventCardProps) {
-  const start = event.startDate
-    ? new Date(event.startDate).toLocaleDateString()
+  const start = event.start_date
+    ? new Date(event.start_date).toLocaleDateString()
     : "";
-  const time = event.startTime
-    ? new Date(event.startTime).toLocaleTimeString([], {
+  const time = event.start_time
+    ? new Date(event.start_time).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       })

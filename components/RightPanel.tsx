@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useCalendar } from "@/lib/calendar-context";
 import { useAuth } from "@/lib/auth-context";
-import ExtractedEvents, { ExtractedEvent } from "./ExtractedEvents";
 import EventForm from "./EventForm";
 import EventCard from "./EventCard";
 import { Button } from "./ui/button";
@@ -27,11 +26,7 @@ export default function RightPanel() {
     setSelectedEvent,
     setRightPanelMode,
   } = useCalendar();
-  const [text, setText] = useState("");
-  const [model, setModel] = useState<string>("gpt-4o-mini");
-  const [extracted, setExtracted] = useState<ExtractedEvent[] | null>(null);
   const [events, setEvents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   useEffect(() => {
     // load events once for day-view filtering
@@ -49,27 +44,6 @@ export default function RightPanel() {
   }, []);
 
   if (!isAuthenticated) return null;
-
-  const handleExtract = async () => {
-    if (!text) return;
-    setLoading(true);
-    try {
-      const res = await api.extractEvents(text, model);
-      const items = res.events || res;
-      setExtracted(items);
-      setRightPanelMode("extracted-events");
-    } catch (err) {
-      console.error(err);
-      // keep simple: show nothing on error
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleClearExtracted = () => {
-    setExtracted(null);
-    setRightPanelMode("ai-input");
-  };
 
   const handleDeleteEvent = async (id?: number) => {
     if (!id) return;
@@ -107,51 +81,20 @@ export default function RightPanel() {
 
   return (
     <aside className="fixed right-0 top-0 h-full z-30 w-[400px] border-l border-border bg-right-panel-bg p-4">
-      {rightPanelMode === "ai-input" && (
-        <div data-tour="ai-input">
-          <h3 className="text-lg font-semibold mb-2">AI Input</h3>
-          <textarea
-            className="w-full min-h-[140px] rounded-md bg-background p-3 text-sm border border-border"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Paste text to extract events..."
-          />
-          <div className="flex items-center gap-2 mt-3">
-            <select
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-              className="rounded-md bg-background p-2 border border-border text-sm"
-            >
-              <option value="gpt-4o-mini">gpt-4o-mini</option>
-            </select>
-            <Button onClick={handleExtract} disabled={loading}>
-              {loading ? "Extracting..." : "Extract Events"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setText("");
-              }}
-            >
-              Clear
-            </Button>
-          </div>
-        </div>
-      )}
-
       {rightPanelMode === "extracted-events" && (
         <div>
           <h3 className="text-lg font-semibold mb-2">Extracted Events</h3>
-          {extracted ? (
-            <ExtractedEvents
-              events={extracted}
-              onClear={handleClearExtracted}
-            />
-          ) : (
-            <div className="text-sm text-muted-foreground">
-              No extracted events. Paste text and Extract.
-            </div>
-          )}
+          <div className="text-sm text-muted-foreground">
+            Extracted events are now managed in the dedicated input page.
+          </div>
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              onClick={() => setRightPanelMode("day-view")}
+            >
+              Back to Day View
+            </Button>
+          </div>
         </div>
       )}
 
@@ -207,7 +150,6 @@ export default function RightPanel() {
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={() => setRightPanelMode("ai-input")}>Edit</Button>
             <Button
               variant="destructive"
               onClick={() => handleDeleteEvent(selectedEvent.id)}

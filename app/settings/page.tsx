@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useCalendar } from "@/lib/calendar-context";
 import { api } from "@/lib/api";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ function updateTokenCookie(token: string) {
 export default function SettingsPage() {
   const { isAuthenticated, isLoading, hasApiKey, refreshAuth, logout } =
     useAuth();
+  const { setFirstDayOfWeek: setContextFirstDayOfWeek } = useCalendar();
   const router = useRouter();
 
   const [apiKey, setApiKey] = useState("");
@@ -117,6 +119,7 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       await api.updateProfile({ timeFormat, firstDayOfWeek });
+      setContextFirstDayOfWeek(firstDayOfWeek);
       setSuccess("Preferences saved!");
     } catch (err) {
       setError(

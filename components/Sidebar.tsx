@@ -5,16 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  Calendar,
-  List,
-  Sparkles,
-  Settings,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
-import { useState } from "react";
+import { Calendar, List, Sparkles, Settings, LogOut } from "lucide-react";
 
 const navItems = [
   { label: "Calendar", icon: Calendar, href: "/calendar" },
@@ -26,7 +17,6 @@ const navItems = [
 export default function Sidebar() {
   const { isAuthenticated, username, logout } = useAuth();
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!isAuthenticated) return null;
 
@@ -46,10 +36,7 @@ export default function Sidebar() {
   return (
     <aside
       data-tour="sidebar"
-      className={cn(
-        "fixed left-0 top-0 z-40 flex h-full flex-col border-r border-border bg-sidebar transition-all duration-300",
-        isCollapsed ? "sidebar-collapsed w-16" : "w-64",
-      )}
+      className="fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-border bg-sidebar transition-all duration-300"
     >
       <div className="border-b border-border px-4 py-4">
         <Link
@@ -57,7 +44,7 @@ export default function Sidebar() {
           className="flex items-center gap-2 text-sm font-semibold text-foreground"
         >
           <Calendar className="h-5 w-5 text-primary" />
-          {!isCollapsed && <span>Better Calendar</span>}
+          <span>Better Calendar</span>
         </Link>
       </div>
 
@@ -67,8 +54,7 @@ export default function Sidebar() {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex h-10 items-center rounded-lg px-3 text-sm transition-colors",
-              isCollapsed ? "justify-center" : "gap-3",
+              "flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors",
               isActive(item.href)
                 ? "bg-primary/15 text-foreground"
                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
@@ -77,56 +63,28 @@ export default function Sidebar() {
             aria-label={item.label}
           >
             <item.icon className="h-4 w-4 shrink-0" />
-            {!isCollapsed && <span>{item.label}</span>}
+            <span>{item.label}</span>
           </Link>
         ))}
       </nav>
 
       <div className="border-t border-border p-2">
-        <div
-          className={cn(
-            "mb-2 flex items-center rounded-lg px-2 py-2",
-            isCollapsed ? "justify-center" : "gap-3",
-          )}
-        >
+        <div className="mb-2 flex items-center gap-3 rounded-lg px-2 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-sm font-medium text-primary">
             {usernameInitial}
           </div>
-          {!isCollapsed && (
-            <span className="truncate text-sm text-foreground">{username}</span>
-          )}
+          <span className="truncate text-sm text-foreground">{username}</span>
         </div>
 
         <Button
           type="button"
           variant="ghost"
           onClick={logout}
-          className={cn(
-            "mb-2 h-9 w-full text-muted-foreground hover:text-foreground",
-            isCollapsed ? "justify-center" : "justify-start gap-2",
-          )}
+          className="mb-2 h-9 w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
           aria-label="Logout"
         >
           <LogOut className="h-4 w-4" />
-          {!isCollapsed && <span>Logout</span>}
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          className={cn(
-            "h-9 w-full",
-            isCollapsed ? "justify-center" : "justify-start gap-2",
-          )}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <PanelLeftOpen className="h-4 w-4" />
-          ) : (
-            <PanelLeftClose className="h-4 w-4" />
-          )}
-          {!isCollapsed && <span>Collapse</span>}
+          <span>Logout</span>
         </Button>
       </div>
     </aside>

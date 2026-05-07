@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
@@ -73,14 +73,6 @@ type CalendarEvent = {
   description: string | null;
 };
 
-const eventPalette = [
-  "border-sky-400/60 bg-sky-500/15 text-sky-50",
-  "border-violet-400/60 bg-violet-500/15 text-violet-50",
-  "border-cyan-400/60 bg-cyan-500/15 text-cyan-50",
-  "border-fuchsia-400/60 bg-fuchsia-500/15 text-fuchsia-50",
-  "border-emerald-400/60 bg-emerald-500/15 text-emerald-50",
-];
-
 function normalizeDate(value?: string | Date | null): Date | null {
   if (!value) return null;
   const date = new Date(value);
@@ -110,8 +102,13 @@ function getEventAnchorDate(event: CalendarEvent) {
   return event.startTime ?? event.startDate;
 }
 
-function getEventColorClass(title: string) {
-  return eventPalette[hashString(title) % eventPalette.length];
+function getEventColor(title: string) {
+  const hue = hashString(title) % 360;
+  return {
+    borderColor: `hsl(${hue}, 55%, 50%)`,
+    backgroundColor: `hsla(${hue}, 55%, 50%, 0.15)`,
+    color: `hsl(${hue}, 55%, 80%)`,
+  };
 }
 
 function DayCell({
@@ -121,6 +118,7 @@ function DayCell({
   onClick,
   onEventClick,
   draggingEventId,
+  maxVisible,
 }: {
   date: Date;
   events: CalendarEvent[];
@@ -128,12 +126,13 @@ function DayCell({
   onClick: () => void;
   onEventClick: (event: CalendarEvent) => void;
   draggingEventId: string | null;
+  maxVisible: number;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: `day-${format(date, "yyyy-MM-dd")}`,
   });
 
-  const visibleEvents = events.slice(0, 3);
+  const visibleEvents = events.slice(0, maxVisible);
   const overflowCount = Math.max(events.length - visibleEvents.length, 0);
 
   return (
@@ -214,13 +213,13 @@ function SortableEventBar({
         onClick();
       }}
       className={cn(
-        "flex items-center gap-2 rounded-md border-l-4 px-2 py-1 text-left text-[11px] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
-        getEventColorClass(event.title),
+        "flex items-center gap-2 rounded-md border-l-4 px-2 py-1.5 text-left text-[11px] shadow-sm transition-transform duration-200",
         isDragging && "opacity-40",
       )}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
+        ...getEventColor(event.title),
       }}
       {...attributes}
       {...listeners}
@@ -245,6 +244,7 @@ export default function CalendarGrid({
     setSelectedEvent,
     setRightPanelMode,
     navigateToday,
+    firstDayOfWeek,
   } = useCalendar();
   const router = useRouter();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
@@ -252,6 +252,8 @@ export default function CalendarGrid({
   const [loading, setLoading] = useState(true);
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [maxVisible, setMaxVisible] = useState(3);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -288,11 +290,28 @@ export default function CalendarGrid({
   const monthDays = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
-    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: firstDayOfWeek as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: firstDayOfWeek as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
 
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [currentMonth]);
+  }, [currentMonth, firstDayOfWeek]);
+
+  const updateMaxVisible = useCallback(() => {
+    if (!gridRef.current) return;
+    const gridTop = gridRef.current.getBoundingClientRect().top;
+    const availableHeight = window.innerHeight - gridTop - 16;
+    const weekCount = Math.ceil(monthDays.length / 7);
+    const cellHeight = Math.floor(availableHeight / weekCount);
+    const labelHeight = 28;
+    const overhead = 28;
+    setMaxVisible(Math.max(1, Math.floor((cellHeight - overhead) / labelHeight)));
+  }, [monthDays.length]);
+
+  useEffect(() => {
+    updateMaxVisible();
+    window.addEventListener("resize", updateMaxVisible);
+    return () => window.removeEventListener("resize", updateMaxVisible);
+  }, [updateMaxVisible]);
 
   const eventsByDay = useMemo(() => {
     const groups = new Map<string, CalendarEvent[]>();
@@ -467,7 +486,10 @@ export default function CalendarGrid({
       </div>
 
       <div className="mb-4 grid grid-cols-7 overflow-hidden rounded-2xl border border-border/80 bg-card/80 text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground shadow-sm">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        {(() => {
+          const base = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          return [...base.slice(firstDayOfWeek), ...base.slice(0, firstDayOfWeek)];
+        })().map((day) => (
           <div
             key={day}
             className="border-r border-border/60 px-3 py-3 last:border-r-0"
@@ -492,7 +514,7 @@ export default function CalendarGrid({
             items={events.map((event) => `event-${event.id}`)}
             strategy={rectSortingStrategy}
           >
-            <div className="grid flex-1 grid-cols-7 overflow-hidden rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+            <div ref={gridRef} className="grid flex-1 grid-cols-7 overflow-hidden rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
               {monthDays.map((date) => {
                 const dayKey = format(date, "yyyy-MM-dd");
                 const dayEvents = eventsByDay.get(dayKey) ?? [];
@@ -506,6 +528,7 @@ export default function CalendarGrid({
                     onClick={() => handleDayClick(date)}
                     onEventClick={handleEventClick}
                     draggingEventId={draggingEventId}
+                    maxVisible={maxVisible}
                   />
                 );
               })}

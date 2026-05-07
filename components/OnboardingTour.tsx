@@ -19,19 +19,13 @@ const steps: TourStep[] = [
     target: "sidebar",
     title: "Navigate from the sidebar",
     description:
-      "Use this panel to switch between your calendar, AI input, events, and settings.",
+      "Use this panel to switch between your calendar, event input, events, and settings.",
   },
   {
     target: "calendar",
     title: "Work from the month calendar",
     description:
       "This center view is the main workspace for checking dates and moving events around.",
-  },
-  {
-    target: "ai-input",
-    title: "Start with AI input",
-    description:
-      "Paste notes here to extract events before saving them into your calendar.",
   },
 ];
 
