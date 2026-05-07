@@ -4,18 +4,14 @@ import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   closestCenter,
+  useDraggable,
   useDroppable,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  rectSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   addDays,
   addMonths,
@@ -169,7 +165,7 @@ function DayCell({
         {visibleEvents.map((event) => {
           const isDragging = draggingEventId === `event-${event.id}`;
           return (
-            <SortableEventBar
+            <DraggableEventBar
               key={event.id}
               event={event}
               isDragging={isDragging}
@@ -188,7 +184,7 @@ function DayCell({
   );
 }
 
-function SortableEventBar({
+function DraggableEventBar({
   event,
   onClick,
   isDragging,
@@ -197,10 +193,10 @@ function SortableEventBar({
   onClick: () => void;
   isDragging: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({
-      id: `event-${event.id}`,
-    });
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: `event-${event.id}`,
+    data: { event },
+  });
 
   const startTime = event.startTime ? format(event.startTime, "p") : "";
 
@@ -213,14 +209,10 @@ function SortableEventBar({
         onClick();
       }}
       className={cn(
-        "flex items-center gap-2 rounded-md border-l-4 px-2 py-1.5 text-left text-[11px] shadow-sm transition-transform duration-200",
+        "flex items-center gap-2 rounded-md border-l-4 px-2 py-1.5 text-left text-[11px] shadow-sm",
         isDragging && "opacity-40",
       )}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        ...getEventColor(event.title),
-      }}
+      style={getEventColor(event.title)}
       {...attributes}
       {...listeners}
     >
@@ -251,6 +243,7 @@ export default function CalendarGrid({
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
+  const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [maxVisible, setMaxVisible] = useState(3);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -366,10 +359,12 @@ export default function CalendarGrid({
 
   const handleDragStart = (event: DragStartEvent) => {
     setDraggingEventId(String(event.active.id));
+    setActiveEvent(event.active.data.current?.event as CalendarEvent ?? null);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setDraggingEventId(null);
+    setActiveEvent(null);
 
     if (!event.over) return;
 
@@ -388,7 +383,32 @@ export default function CalendarGrid({
       targetDate,
       startOfDay(originalAnchorDate),
     );
+
+    if (dayDelta === 0) return;
+
+    const originalEvent = { ...targetEvent };
     const movedStartDate = addDays(startOfDay(targetEvent.startDate), dayDelta);
+
+    const optimisticEvent: CalendarEvent = {
+      ...targetEvent,
+      startDate: movedStartDate,
+      startTime: targetEvent.startTime
+        ? addDays(new Date(targetEvent.startTime), dayDelta)
+        : null,
+      endDate: targetEvent.endDate
+        ? addDays(startOfDay(targetEvent.endDate), dayDelta)
+        : null,
+      endTime: targetEvent.endTime
+        ? addDays(new Date(targetEvent.endTime), dayDelta)
+        : null,
+    };
+
+    setEvents((current) =>
+      current.map((item) =>
+        item.id === optimisticEvent.id ? optimisticEvent : item,
+      ),
+    );
+
     const payload: Record<string, unknown> = {
       startDate: format(movedStartDate, "yyyy-MM-dd"),
     };
@@ -423,7 +443,12 @@ export default function CalendarGrid({
         ),
       );
     } catch (error) {
-      console.error("Failed to move event:", error);
+      console.error("Failed to move event, reverting:", error);
+      setEvents((current) =>
+        current.map((item) =>
+          item.id === originalEvent.id ? originalEvent : item,
+        ),
+      );
     }
   };
 
@@ -510,30 +535,49 @@ export default function CalendarGrid({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={events.map((event) => `event-${event.id}`)}
-            strategy={rectSortingStrategy}
-          >
-            <div ref={gridRef} className="grid flex-1 grid-cols-7 overflow-hidden rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
-              {monthDays.map((date) => {
-                const dayKey = format(date, "yyyy-MM-dd");
-                const dayEvents = eventsByDay.get(dayKey) ?? [];
+          <div ref={gridRef} className="grid flex-1 grid-cols-7 overflow-hidden rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+            {monthDays.map((date) => {
+              const dayKey = format(date, "yyyy-MM-dd");
+              const dayEvents = eventsByDay.get(dayKey) ?? [];
 
-                return (
-                  <DayCell
-                    key={dayKey}
-                    date={date}
-                    events={dayEvents}
-                    isOutsideMonth={!isSameMonth(date, currentMonth)}
-                    onClick={() => handleDayClick(date)}
-                    onEventClick={handleEventClick}
-                    draggingEventId={draggingEventId}
-                    maxVisible={maxVisible}
-                  />
-                );
-              })}
-            </div>
-          </SortableContext>
+              return (
+                <DayCell
+                  key={dayKey}
+                  date={date}
+                  events={dayEvents}
+                  isOutsideMonth={!isSameMonth(date, currentMonth)}
+                  onClick={() => handleDayClick(date)}
+                  onEventClick={handleEventClick}
+                  draggingEventId={draggingEventId}
+                  maxVisible={maxVisible}
+                />
+              );
+            })}
+          </div>
+
+          <DragOverlay dropAnimation={null}>
+            {activeEvent ? (
+              <div
+                className="flex items-center gap-2 rounded-md border-l-4 px-2 py-1.5 text-left text-[11px] shadow-2xl"
+                style={{
+                  ...getEventColor(activeEvent.title),
+                  cursor: "grabbing",
+                  transform: "scale(1.05)",
+                  pointerEvents: "none",
+                }}
+              >
+                <span className="h-2.5 w-2.5 rounded-full bg-current/80" />
+                <span className="min-w-0 flex-1 truncate font-medium">
+                  {activeEvent.title}
+                </span>
+                {activeEvent.startTime && (
+                  <span className="shrink-0 text-current/80">
+                    {format(activeEvent.startTime, "p")}
+                  </span>
+                )}
+              </div>
+            ) : null}
+          </DragOverlay>
         </DndContext>
       )}
 
