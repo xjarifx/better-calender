@@ -31,7 +31,6 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Plus,
   Search,
 } from "lucide-react";
 
@@ -580,14 +579,6 @@ export default function CalendarGrid({
           </DragOverlay>
         </DndContext>
       )}
-
-      <Button
-        className="fixed bottom-6 right-[calc(400px+1.5rem)] z-40 h-14 rounded-full px-5 shadow-lg shadow-primary/25"
-        onClick={() => router.push("/events/new")}
-      >
-        <Plus className="h-5 w-5" />
-        <span className="ml-2">Add Event</span>
-      </Button>
 
       {isSearchOpen && (
         <SearchModal open={isSearchOpen} onOpenChange={setIsSearchOpen} />

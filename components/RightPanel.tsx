@@ -8,6 +8,12 @@ import EventCard from "./EventCard";
 import { Button } from "./ui/button";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "./ui/dialog";
+import { Plus } from "lucide-react";
 
 function formatDateTimeInput(value: string | Date | null | undefined) {
   if (!value) return "";
@@ -27,20 +33,18 @@ export default function RightPanel() {
     setRightPanelMode,
   } = useCalendar();
   const [events, setEvents] = useState<any[]>([]);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const router = useRouter();
+
+  const refreshEvents = async () => {
+    try {
+      const res = await api.getEvents();
+      setEvents(res.events || res);
+    } catch {}
+  };
+
   useEffect(() => {
-    // load events once for day-view filtering
-    let mounted = true;
-    api
-      .getEvents()
-      .then((res) => {
-        if (!mounted) return;
-        setEvents(res.events || res);
-      })
-      .catch(() => {});
-    return () => {
-      mounted = false;
-    };
+    refreshEvents();
   }, []);
 
   if (!isAuthenticated) return null;
@@ -80,114 +84,131 @@ export default function RightPanel() {
   };
 
   return (
-    <aside className="fixed right-0 top-0 h-full z-30 w-[400px] border-l border-border bg-right-panel-bg p-4">
-      {rightPanelMode === "extracted-events" && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Extracted Events</h3>
-          <div className="text-sm text-muted-foreground">
-            Extracted events are now managed in the dedicated input page.
+    <aside className="fixed right-0 top-0 h-full z-30 w-[400px] border-l border-border bg-right-panel-bg flex flex-col">
+      <div className="flex-1 overflow-y-auto p-4">
+        {rightPanelMode === "extracted-events" && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Extracted Events</h3>
+            <div className="text-sm text-muted-foreground">
+              Extracted events are now managed in the dedicated input page.
+            </div>
+            <div className="mt-3">
+              <Button
+                variant="outline"
+                onClick={() => setRightPanelMode("day-view")}
+              >
+                Back to Day View
+              </Button>
+            </div>
           </div>
-          <div className="mt-3">
-            <Button
-              variant="outline"
-              onClick={() => setRightPanelMode("day-view")}
-            >
-              Back to Day View
-            </Button>
-          </div>
-        </div>
-      )}
+        )}
 
-      {rightPanelMode === "day-view" && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">
-            {selectedDate ? new Date(selectedDate).toDateString() : "Day View"}
-          </h3>
-          <div className="space-y-2">
-            {(events || [])
-              .filter((e) => {
-                if (!selectedDate) return false;
-                const sd = new Date(e.startDate).toDateString();
-                return sd === new Date(selectedDate).toDateString();
-              })
-              .map((e) => (
-                <div
-                  key={e.id}
-                  onClick={() => {
-                    setSelectedEvent(e);
-                    setRightPanelMode("event-details");
-                  }}
-                >
-                  <EventCard event={e} />
-                </div>
-              ))}
+        {rightPanelMode === "day-view" && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">
+              {selectedDate ? new Date(selectedDate).toDateString() : "Day View"}
+            </h3>
+            <div className="space-y-2">
+              {(events || [])
+                .filter((e) => {
+                  if (!selectedDate) return false;
+                  const sd = new Date(e.startDate).toDateString();
+                  return sd === new Date(selectedDate).toDateString();
+                })
+                .map((e) => (
+                  <div
+                    key={e.id}
+                    onClick={() => {
+                      setSelectedEvent(e);
+                      setRightPanelMode("event-details");
+                    }}
+                  >
+                    <EventCard event={e} />
+                  </div>
+                ))}
+            </div>
           </div>
-          <div className="mt-3">
-            <Button onClick={() => router.push("/events/new")}>
-              Add Event
-            </Button>
-          </div>
-        </div>
-      )}
+        )}
 
-      {rightPanelMode === "event-details" && selectedEvent && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">{selectedEvent.title}</h3>
-          <div className="text-sm text-muted-foreground mb-3">
-            {selectedEvent.start_date &&
-              new Date(selectedEvent.start_date).toDateString()}
-            {selectedEvent.start_time &&
-              ` · ${new Date(selectedEvent.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
-          </div>
+        {rightPanelMode === "event-details" && selectedEvent && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">{selectedEvent.title}</h3>
+            <div className="text-sm text-muted-foreground mb-3">
+              {selectedEvent.start_date &&
+                new Date(selectedEvent.start_date).toDateString()}
+              {selectedEvent.start_time &&
+                ` · ${new Date(selectedEvent.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`}
+            </div>
 
-          <div className="mb-3">
-            {selectedEvent.location && (
-              <div className="text-sm">Location: {selectedEvent.location}</div>
-            )}
-            {selectedEvent.description && (
-              <div className="text-sm mt-2">{selectedEvent.description}</div>
-            )}
-          </div>
+            <div className="mb-3">
+              {selectedEvent.location && (
+                <div className="text-sm">Location: {selectedEvent.location}</div>
+              )}
+              {selectedEvent.description && (
+                <div className="text-sm mt-2">{selectedEvent.description}</div>
+              )}
+            </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="destructive"
-              onClick={() => handleDeleteEvent(selectedEvent.id)}
-            >
-              Delete
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleDuplicate(selectedEvent)}
-            >
-              Duplicate
-            </Button>
-          </div>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                onClick={() => handleDeleteEvent(selectedEvent.id)}
+              >
+                Delete
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleDuplicate(selectedEvent)}
+              >
+                Duplicate
+              </Button>
+            </div>
 
-          <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Edit Event</h4>
-            <EventForm
-              mode="edit"
-              eventId={String(selectedEvent.id)}
-              initialData={{
-                title: selectedEvent.title || "",
-                startDate: selectedEvent.start_date
-                  ? new Date(selectedEvent.start_date)
-                      .toISOString()
-                      .slice(0, 10)
-                  : "",
-                startTime: formatDateTimeInput(selectedEvent.start_time),
-                endDate: selectedEvent.end_date
-                  ? new Date(selectedEvent.end_date).toISOString().slice(0, 10)
-                  : "",
-                endTime: formatDateTimeInput(selectedEvent.end_time),
-                location: selectedEvent.location || "",
-                description: selectedEvent.description || "",
-              }}
-            />
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-2">Edit Event</h4>
+              <EventForm
+                mode="edit"
+                eventId={String(selectedEvent.id)}
+                initialData={{
+                  title: selectedEvent.title || "",
+                  startDate: selectedEvent.start_date
+                    ? new Date(selectedEvent.start_date)
+                        .toISOString()
+                        .slice(0, 10)
+                    : "",
+                  startTime: formatDateTimeInput(selectedEvent.start_time),
+                  endDate: selectedEvent.end_date
+                    ? new Date(selectedEvent.end_date).toISOString().slice(0, 10)
+                    : "",
+                  endTime: formatDateTimeInput(selectedEvent.end_time),
+                  location: selectedEvent.location || "",
+                  description: selectedEvent.description || "",
+                }}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      <div className="border-t border-border bg-right-panel-bg p-4">
+        <Button className="w-full" onClick={() => setIsCreateOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" /> Add Event
+        </Button>
+      </div>
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogTitle>New Event</DialogTitle>
+          <EventForm
+            mode="create"
+            onSuccess={() => {
+              refreshEvents();
+              setIsCreateOpen(false);
+            }}
+            onCancel={() => setIsCreateOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }

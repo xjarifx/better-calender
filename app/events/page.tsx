@@ -154,13 +154,6 @@ export default function EventsPage() {
             </button>
             <h1 className="text-xl font-semibold">All Events</h1>
           </div>
-          <Button
-            size="sm"
-            onClick={() => router.push("/events/new")}
-            className="rounded-lg"
-          >
-            + New
-          </Button>
         </div>
 
         {error && (

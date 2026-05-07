@@ -19,12 +19,16 @@ interface EventFormProps {
     location?: string;
     description?: string;
   };
+  onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
 export default function EventForm({
   mode,
   eventId,
   initialData,
+  onSuccess,
+  onCancel,
 }: EventFormProps) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title || "");
@@ -83,7 +87,11 @@ export default function EventForm({
       } else {
         await api.createEvent(eventData);
       }
-      router.push("/calendar");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push("/calendar");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save event");
     } finally {
@@ -191,7 +199,7 @@ export default function EventForm({
         <Button
           type="button"
           variant="outline"
-          onClick={() => router.push("/calendar")}
+          onClick={() => onCancel ? onCancel() : router.push("/calendar")}
           className="h-10 flex-1 rounded-xl"
         >
           Cancel
