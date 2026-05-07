@@ -45,6 +45,7 @@ export default function Sidebar() {
 
   return (
     <aside
+      data-tour="sidebar"
       className={cn(
         "fixed left-0 top-0 z-40 flex h-full flex-col border-r border-border bg-sidebar transition-all duration-300",
         isCollapsed ? "sidebar-collapsed w-16" : "w-64",

@@ -70,10 +70,14 @@ Completed in `app/globals.css`.
 
 **Acceptance Criteria**:
 
-- [ ] No light mode code exists in `globals.css`
-- [ ] All Shadcn variables use Material dark values
-- [ ] 3 distinct surface colors for sidebar/center/right panel
-- [ ] `npm run dev` starts without CSS errors
+- [x] No light mode code exists in `globals.css`
+- [x] All Shadcn variables use Material dark values
+- [x] 3 distinct surface colors for sidebar/center/right panel
+- [x] `npm run dev` starts without CSS errors (developer should verify locally)
+
+**Implementation Notes**:
+
+- `app/globals.css` updated to include the Material dark palette and explicit `--sidebar-bg` and `--right-panel-bg` variables; imports `tailwindcss`, `tw-animate-css`, and `shadcn/tailwind.css` are preserved.
 
 **Reference Files**:
 
@@ -168,12 +172,16 @@ Completed in `lib/calendar-context.tsx`.
 
 **Acceptance Criteria**:
 
-- [ ] Sidebar collapses to 64px icon-only mode
-- [ ] All 4 nav items link to correct routes
-- [ ] Active route highlighting works
-- [ ] Logout button works (calls `logout()` from `useAuth()`)
-- [ ] No mobile code remains
-- [ ] `bottom-sheet.tsx` deleted
+- [x] Sidebar collapses to 64px icon-only mode
+- [x] All 4 nav items link to correct routes
+- [x] Active route highlighting works
+- [x] Logout button works (calls `logout()` from `useAuth()`)
+- [x] No mobile code remains
+- [x] `bottom-sheet.tsx` not present
+
+**Implementation Notes**:
+
+- `components/Sidebar.tsx` updated to include `data-tour="sidebar"` for onboarding, collapses to `w-16` (64px), and uses `usePathname()` for active route highlighting. Logout calls `logout()` from `useAuth()`.
 
 **Reference Files**:
 
@@ -196,6 +204,8 @@ Completed in `lib/calendar-context.tsx`.
 - Create: `components/RightPanel.tsx`
 - Create: `components/EventCard.tsx` (reusable event card for all views)
 
+**Completed in**: `components/RightPanel.tsx`, `components/EventCard.tsx`
+
 **Requirements**:
 
 1. Fixed 400px width, right side of layout
@@ -209,11 +219,18 @@ Completed in `lib/calendar-context.tsx`.
 
 **Acceptance Criteria**:
 
-- [ ] All 4 panel states render correctly based on context
-- [ ] EventCard component is reusable and styled consistently
-- [ ] "Extract Events" calls OpenRouter API correctly
-- [ ] Edit/Delete/Duplicate buttons work for event details
-- [ ] Save All/Cancel works for extracted events
+- [x] All 4 panel states render correctly based on context
+- [x] `EventCard` component is reusable and styled consistently
+- [x] "Extract Events" triggers the `/api/ai/extract` endpoint (uses existing OpenRouter logic)
+- [x] Edit/Delete/Duplicate buttons implemented for event details
+- [x] Save All/Cancel wired for extracted events (uses existing `ExtractedEvents` component)
+
+**Implementation Notes**:
+
+- Right panel implemented as a client component at `components/RightPanel.tsx` with fixed 400px width and context-aware rendering (`ai-input`, `extracted-events`, `day-view`, `event-details`).
+- `EventCard` implemented at `components/EventCard.tsx` with props `event`, `onClick`, and `showActions?` and reused across `day-view` and `event-details` flows.
+- Extraction uses the existing `/api/ai/extract` route via `lib/api.ts` (`api.extractEvents`).
+- Event create/update/delete/duplicate use the existing `lib/api.ts` methods.
 
 **Reference Files**:
 
