@@ -50,8 +50,10 @@ export default function ExtractedEvents({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setEditableEvents(events.map((event) => ({ ...event })));
-    setError("");
+    queueMicrotask(() => {
+      setEditableEvents(events.map((event) => ({ ...event })));
+      setError("");
+    });
   }, [events]);
 
   const updateEvent = (

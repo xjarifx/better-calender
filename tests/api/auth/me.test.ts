@@ -1,13 +1,14 @@
 import { GET } from '@/app/api/auth/me/route'
 import { getUserById } from '@/lib/db-queries'
 import * as jwt from 'jsonwebtoken'
+import type { users } from '@prisma/client'
 import { NextRequest } from 'next/server'
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
 
 jest.mock('@/lib/db-queries')
 
 const mockGetUserById = getUserById as jest.MockedFunction<typeof getUserById>
-const mockJwtVerify = jwt.verify as jest.MockedFunction<typeof jwt.verify>
+const mockJwtVerify = jwt.verify as jest.Mock
 
 function createRequestWithCookie(token?: string): NextRequest {
   const headers = new Headers()
@@ -46,6 +47,7 @@ describe('GET /api/auth/me', () => {
   })
 
   it('should return 401 if user no longer exists', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockJwtVerify.mockReturnValue({ userId: 1, username: 'testuser' } as any)
     mockGetUserById.mockResolvedValue(null)
 
@@ -59,8 +61,9 @@ describe('GET /api/auth/me', () => {
   })
 
   it('should return 200 with user data if authenticated', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockJwtVerify.mockReturnValue({ userId: 1, username: 'testuser' } as any)
-    mockGetUserById.mockResolvedValue({ id: 1, username: 'testuser' } as any)
+    mockGetUserById.mockResolvedValue({ id: 1, username: 'testuser' } as unknown as users)
 
     const request = createRequestWithCookie('valid-token')
     const response = await GET(request)

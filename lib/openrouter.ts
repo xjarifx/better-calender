@@ -78,7 +78,7 @@ export async function extractEvents(text: string, model: string, userApiKey?: st
       throw new Error('AI response is not an array')
     }
     return events
-  } catch (parseError) {
+  } catch {
     throw new Error('Failed to parse AI response as JSON')
   }
 }

@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
-import {
-  createEvent,
-  getEventsByUserId,
-  getEventById,
-  updateEvent,
-  deleteEvent,
-} from '@/lib/db-queries'
+import { createEvent, getEventsByUserId } from '@/lib/db-queries'
 
 export async function GET(request: NextRequest) {
   const user = getAuthUser(request)
@@ -44,7 +38,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json(event, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create event' }, { status: 500 })
   }
 }

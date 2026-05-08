@@ -71,8 +71,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    checkAuth()
-  }, [checkAuth])
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((res) => res.ok ? res.json() : Promise.reject())
+      .then((data) => {
+        if (data.authenticated) {
+          setIsAuthenticated(true)
+          setUsername(data.username)
+          return fetch('/api/user').then((r) => r.ok ? r.json() : null)
+        }
+        return Promise.reject()
+      })
+      .then((profile) => {
+        if (profile) setHasApiKey(profile.hasApiKey || false)
+      })
+      .catch(() => {
+        setIsAuthenticated(false)
+        setUsername(null)
+        setHasApiKey(false)
+      })
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const logout = async () => {
     try {

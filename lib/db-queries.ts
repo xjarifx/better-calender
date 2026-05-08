@@ -1,5 +1,5 @@
 import { prisma } from './db'
-import type { events, users } from '@prisma/client'
+import type { events, users, Prisma } from '@prisma/client'
 import bcrypt from 'bcrypt'
 
 export async function createUser(username: string, password: string): Promise<users> {
@@ -74,7 +74,7 @@ export async function updateEvent(
     description: string
   }>
 ): Promise<events> {
-  const updateData: any = {}
+  const updateData: Prisma.eventsUpdateInput = {}
   if (data.title !== undefined) updateData.title = data.title
   if (data.startDate !== undefined) updateData.start_date = data.startDate
   if (data.startTime !== undefined) updateData.start_time = data.startTime
@@ -114,7 +114,7 @@ export async function updateUserPreferences(
   userId: number,
   data: { timeFormat?: string; firstDayOfWeek?: number }
 ): Promise<void> {
-  const updateData: any = {}
+  const updateData: Prisma.usersUpdateInput = {}
   if (data.timeFormat !== undefined) updateData.timeFormat = data.timeFormat
   if (data.firstDayOfWeek !== undefined) updateData.firstDayOfWeek = data.firstDayOfWeek
   await prisma.users.update({

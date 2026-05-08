@@ -7,7 +7,6 @@ import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Alert } from '@/components/ui/alert'
 
 export default function LoginPage() {
   const { refreshAuth } = useAuth()
@@ -23,7 +22,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const data = await api.login(username, password)
+      await api.login(username, password)
       await refreshAuth()
       router.push('/calendar')
     } catch (err) {

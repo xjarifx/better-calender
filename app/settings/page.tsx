@@ -46,37 +46,26 @@ export default function SettingsPage() {
       router.push("/login");
       return;
     }
-    loadProfile();
-    loadModels();
+    api.getUserProfile()
+      .then((data) => {
+        if (data.hasApiKey) {
+          setApiKey("••••••••••••••••••••••••••••••");
+        }
+        if (data.timeFormat) setTimeFormat(data.timeFormat);
+        if (data.firstDayOfWeek !== undefined)
+          setFirstDayOfWeek(data.firstDayOfWeek);
+      })
+      .catch(() => setError("Failed to load profile"))
+      .finally(() => setLoading(false));
+    api.getFreeModels()
+      .then((data) => {
+        if (Array.isArray(data)) setModels(data);
+        const saved = localStorage.getItem("preferred-model");
+        if (saved) setSelectedModel(saved);
+        else if (data && data[0]) setSelectedModel(data[0]);
+      })
+      .catch(() => { /* ignore model fetch errors */ });
   }, [isAuthenticated, isLoading, router]);
-
-  const loadModels = async () => {
-    try {
-      const data = await api.getFreeModels();
-      if (Array.isArray(data)) setModels(data);
-      const saved = localStorage.getItem("preferred-model");
-      if (saved) setSelectedModel(saved);
-      else if (data && data[0]) setSelectedModel(data[0]);
-    } catch (err) {
-      // ignore model fetch errors
-    }
-  };
-
-  const loadProfile = async () => {
-    try {
-      const data = await api.getUserProfile();
-      if (data.hasApiKey) {
-        setApiKey("••••••••••••••••••••••••••••••");
-      }
-      if (data.timeFormat) setTimeFormat(data.timeFormat);
-      if (data.firstDayOfWeek !== undefined)
-        setFirstDayOfWeek(data.firstDayOfWeek);
-    } catch (err) {
-      setError("Failed to load profile");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSaveApiKey = async () => {
     setError("");
@@ -158,7 +147,7 @@ export default function SettingsPage() {
         const text = await res.text();
         setError("Account deletion failed: " + (text || res.statusText));
       }
-    } catch (err) {
+    } catch {
       setError("Account deletion failed");
     }
   };

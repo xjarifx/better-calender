@@ -1,6 +1,7 @@
 import { GET, PUT } from '@/app/api/user/route'
 import { getAuthUserAsync } from '@/lib/auth'
 import { updateUserApiKey, updateUserPreferences, updateUsername, updatePassword } from '@/lib/db-queries'
+import type { users } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import * as jwt from 'jsonwebtoken'
 import { NextRequest } from 'next/server'
@@ -117,7 +118,7 @@ describe('PUT /api/user', () => {
 
   it('should update API key successfully', async () => {
     mockGetAuthUserAsync.mockResolvedValue({ userId: 1, username: 'testuser' })
-    mockUpdateUserApiKey.mockResolvedValue({} as any)
+    mockUpdateUserApiKey.mockResolvedValue({} as users)
 
     const request = createAuthedRequest('PUT', { apiKey: 'sk-or-v1-newkey' })
     const response = await PUT(request)
@@ -141,7 +142,7 @@ describe('PUT /api/user', () => {
 
   it('should clear API key when null is passed', async () => {
     mockGetAuthUserAsync.mockResolvedValue({ userId: 1, username: 'testuser' })
-    mockUpdateUserApiKey.mockResolvedValue({} as any)
+    mockUpdateUserApiKey.mockResolvedValue({} as users)
 
     const request = createAuthedRequest('PUT', { apiKey: null })
     const response = await PUT(request)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { getAuthUserAsync } from '@/lib/auth'
-import { updateUserApiKey, updateUserPreferences, updateUsername, updatePassword, getUserPreferences } from '@/lib/db-queries'
+import { updateUserApiKey, updateUserPreferences, updateUsername, updatePassword } from '@/lib/db-queries'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       timeFormat: dbUser.timeFormat,
       firstDayOfWeek: dbUser.firstDayOfWeek,
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch user profile' },
       { status: 500 }

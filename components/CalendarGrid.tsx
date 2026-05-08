@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import {
   DndContext,
   DragOverlay,
@@ -318,7 +317,6 @@ export default function CalendarGrid({
     navigateToday,
     firstDayOfWeek,
   } = useCalendar();
-  const router = useRouter();
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);

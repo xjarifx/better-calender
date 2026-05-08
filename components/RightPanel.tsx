@@ -8,7 +8,6 @@ import EventCard from "./EventCard";
 import EmptyStatePet from "./EmptyStatePet";
 import { Button } from "./ui/button";
 import { api } from "@/lib/api";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +23,20 @@ function formatDateTimeInput(value: string | Date | null | undefined) {
     : value.toISOString().slice(0, 16);
 }
 
+interface EventData {
+  id: number
+  user_id: number
+  title: string
+  start_date: Date
+  start_time: Date | null
+  end_date: Date | null
+  end_time: Date | null
+  location: string | null
+  description: string | null
+  created_at: Date
+  updated_at: Date
+}
+
 function RightPanelContent({ isMobile }: { isMobile?: boolean }) {
   const {
     rightPanelMode,
@@ -32,16 +45,14 @@ function RightPanelContent({ isMobile }: { isMobile?: boolean }) {
     setSelectedEvent,
     setRightPanelMode,
   } = useCalendar();
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<EventData[]>([]);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
 
-  const refreshEvents = async () => {
-    try {
-      const res = await api.getEvents();
-      setEvents(res.events || res);
-    } catch {}
+  const refreshEvents = () => {
+    api.getEvents()
+      .then((res) => setEvents(res.events || res))
+      .catch(() => {});
   };
 
   useEffect(() => {

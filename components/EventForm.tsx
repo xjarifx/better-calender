@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -42,17 +42,6 @@ export default function EventForm({
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setTitle(initialData?.title || "");
-    setStartDate(initialData?.startDate || "");
-    setStartTime(initialData?.startTime || "");
-    setEndDate(initialData?.endDate || "");
-    setEndTime(initialData?.endTime || "");
-    setLocation(initialData?.location || "");
-    setDescription(initialData?.description || "");
-    setError("");
-  }, [initialData, eventId, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

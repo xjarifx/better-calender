@@ -41,28 +41,26 @@ interface ExtractedEvent {
 export default function EventInputPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
-  const [text, setText] = useState('')
+  const [text, setText] = useState(() => typeof window !== 'undefined' ? localStorage.getItem(LS_KEY_TEXT) || '' : '')
   const [models, setModels] = useState<FreeModel[]>([])
   const [selectedModel, setSelectedModel] = useState('')
   const [loading, setLoading] = useState(false)
   const [extracting, setExtracting] = useState(false)
   const [error, setError] = useState('')
-  const [extractedEvents, setExtractedEvents] = useState<ExtractedEvent[]>([])
+  const [extractedEvents, setExtractedEvents] = useState<ExtractedEvent[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const saved = localStorage.getItem(LS_KEY_EVENTS)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const requestIdRef = useRef(0)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const savedText = localStorage.getItem(LS_KEY_TEXT)
-    if (savedText) setText(savedText)
-
-    const savedEvents = localStorage.getItem(LS_KEY_EVENTS)
-    if (savedEvents) {
-      try {
-        setExtractedEvents(JSON.parse(savedEvents))
-      } catch { /* ignore */ }
-    }
-
     const savedRequestId = localStorage.getItem(LS_KEY_REQUEST_ID)
     if (savedRequestId) {
       requestIdRef.current = parseInt(savedRequestId, 10) || 0
@@ -101,7 +99,19 @@ export default function EventInputPage() {
       router.push('/login')
       return
     }
-    loadModels()
+    queueMicrotask(() => setLoading(true))
+    fetch('/api/ai/models')
+      .then((res) => { if (!res.ok) throw new Error('Failed to load models'); return res.json() })
+      .then((data) => {
+        const apiModels = data.models || []
+        const allModels = [...HARDCODED_RECOMMENDED_MODELS, ...apiModels]
+        setModels(allModels)
+        if (allModels.length > 0) {
+          setSelectedModel(allModels[0].id)
+        }
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load models'))
+      .finally(() => setLoading(false))
   }, [isAuthenticated, isLoading, router])
 
   useEffect(() => {
@@ -113,25 +123,6 @@ export default function EventInputPage() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const loadModels = async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/ai/models')
-      if (!res.ok) throw new Error('Failed to load models')
-      const data = await res.json()
-      const apiModels = data.models || []
-      const allModels = [...HARDCODED_RECOMMENDED_MODELS, ...apiModels]
-      setModels(allModels)
-      if (allModels.length > 0) {
-        setSelectedModel(allModels[0].id)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load models')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')

@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server'
 
+interface OpenRouterRawModel {
+  id: string
+  name: string
+  context_length: number
+  description: string
+  pricing: {
+    prompt: string
+    completion: string
+  }
+}
+
 export interface OpenRouterModel {
   id: string
   name: string
@@ -27,21 +38,21 @@ export async function GET() {
     const data = await response.json()
     const allModels = data.data || []
 
-    const freeModels = allModels
-      .filter((model: any) => {
+    const freeModels = (allModels as OpenRouterRawModel[])
+      .filter((model) => {
         const pricing = model.pricing
         if (!pricing) return false
         const promptCost = parseFloat(pricing.prompt) || 0
         const completionCost = parseFloat(pricing.completion) || 0
         return promptCost === 0 && completionCost === 0
       })
-      .map((model: any) => ({
+      .map((model) => ({
         id: model.id,
         name: model.name || model.id,
         context: model.context_length ? formatContextLength(model.context_length) : 'Unknown',
         description: model.description || '',
       }))
-      .sort((a: any, b: any) => a.name.localeCompare(b.name))
+      .sort((a, b) => a.name.localeCompare(b.name))
 
     return NextResponse.json({ models: freeModels })
   } catch (error) {

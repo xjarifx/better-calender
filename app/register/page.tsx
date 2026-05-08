@@ -7,7 +7,6 @@ import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Alert } from '@/components/ui/alert'
 
 export default function RegisterPage() {
   const { refreshAuth } = useAuth()

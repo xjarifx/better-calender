@@ -113,10 +113,10 @@ export default function EmptyStatePet() {
   const dimsRef = useRef({ w: 368, h: 400 });
 
   const [gameState, setGameState] = useState<GameState>("playing");
-  // Force re-render for UI overlay
-  const [uiTick, setUiTick] = useState(0);
 
-  stateRef.current = gameState;
+  useEffect(() => {
+    stateRef.current = gameState;
+  }, [gameState]);
 
   // Resize + init
   useEffect(() => {
@@ -293,7 +293,6 @@ export default function EmptyStatePet() {
               if (livesRef.current <= 0) {
                 setGameState("gameover");
               }
-              setUiTick((t) => t + 1);
               break;
             }
           }
@@ -428,7 +427,6 @@ export default function EmptyStatePet() {
       spawnTimerRef.current = 0;
       shootingRef.current = false;
       setGameState("playing");
-      setUiTick((t) => t + 1);
     }
   }, []);
 

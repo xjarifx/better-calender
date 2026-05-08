@@ -10,13 +10,24 @@ import { format, parseISO } from 'date-fns'
 import { ArrowLeft } from 'lucide-react'
 import { PageLoading } from '@/components/ui/loading'
 
+interface EventData {
+  title: string
+  start_date: string
+  start_time: string | null
+  end_date: string | null
+  end_time: string | null
+  location: string | null
+  description: string | null
+  color?: string
+}
+
 export default function EventDetailPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
 
-  const [event, setEvent] = useState<any>(null)
+  const [event, setEvent] = useState<EventData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [mode, setMode] = useState<'view' | 'edit'>('view')
@@ -28,19 +39,11 @@ export default function EventDetailPage() {
       router.push('/login')
       return
     }
-    loadEvent()
+    api.getEvent(id)
+      .then((data) => setEvent(data as EventData))
+      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load event'))
+      .finally(() => setLoading(false))
   }, [isAuthenticated, isLoading, id, router])
-
-  const loadEvent = async () => {
-    try {
-      const data = await api.getEvent(id)
-      setEvent(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load event')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this event?')) return

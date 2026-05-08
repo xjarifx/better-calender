@@ -54,7 +54,7 @@ export async function PUT(
     })
 
     return NextResponse.json(event)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update event' }, { status: 500 })
   }
 }
@@ -77,7 +77,7 @@ export async function DELETE(
 
     await deleteEvent(Number(id), user.userId)
     return new NextResponse(null, { status: 204 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 })
   }
 }

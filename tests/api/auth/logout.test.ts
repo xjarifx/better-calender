@@ -1,5 +1,4 @@
 import { POST } from '@/app/api/auth/logout/route'
-import { NextRequest } from 'next/server'
 import { jest, describe, it, expect, beforeEach } from '@jest/globals'
 
 describe('POST /api/auth/logout', () => {
@@ -8,11 +7,7 @@ describe('POST /api/auth/logout', () => {
   })
 
   it('should return 200 with success true', async () => {
-    const request = new NextRequest('http://localhost/api/auth/logout', {
-      method: 'POST',
-    })
-
-    const response = await POST(request)
+    const response = await POST()
     const data = await response.json()
 
     expect(response.status).toBe(200)
@@ -20,11 +15,7 @@ describe('POST /api/auth/logout', () => {
   })
 
   it('should clear token cookie', async () => {
-    const request = new NextRequest('http://localhost/api/auth/logout', {
-      method: 'POST',
-    })
-
-    const response = await POST(request)
+    const response = await POST()
 
     const setCookieHeader = response.headers.get('Set-Cookie') || ''
     expect(setCookieHeader).toContain('token=;')
@@ -32,11 +23,7 @@ describe('POST /api/auth/logout', () => {
   })
 
   it('should clear all auth cookies', async () => {
-    const request = new NextRequest('http://localhost/api/auth/logout', {
-      method: 'POST',
-    })
-
-    const response = await POST(request)
+    const response = await POST()
 
     const setCookieHeader = response.headers.get('Set-Cookie') || ''
     expect(setCookieHeader).toContain('token=;')

@@ -9,14 +9,17 @@ import { format, parseISO } from "date-fns";
 
 interface Event {
   id: number;
+  user_id: number;
   title: string;
-  start_date: string;
-  start_time: string | null;
-  end_date: string;
-  end_time: string | null;
-  location?: string;
-  description?: string;
+  start_date: Date;
+  start_time: Date | null;
+  end_date: Date | null;
+  end_time: Date | null;
+  location: string | null;
+  description: string | null;
   color?: string;
+  created_at: Date;
+  updated_at: Date;
 }
 
 import { ArrowLeft } from "lucide-react";
@@ -30,7 +33,6 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [deleteError, setDeleteError] = useState("");
   const { setSelectedEvent, setRightPanelMode } = useCalendar();
   const [collapsedMonths, setCollapsedMonths] = useState<
     Record<string, boolean>
@@ -42,47 +44,11 @@ export default function EventsPage() {
       router.push("/login");
       return;
     }
-    loadEvents();
+    api.getEvents()
+      .then((data) => setEvents(data))
+      .catch(() => setError("Failed to load events"))
+      .finally(() => setLoading(false));
   }, [isAuthenticated, isLoading, router]);
-
-  const loadEvents = async () => {
-    try {
-      const data = await api.getEvents();
-      setEvents(data);
-    } catch (err) {
-      setError("Failed to load events");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: number, title: string) => {
-    if (!confirm(`Delete "${title}"?`)) return;
-    try {
-      await api.deleteEvent(String(id));
-      setEvents(events.filter((e) => e.id !== id));
-    } catch (err) {
-      setDeleteError("Failed to delete event");
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "No date";
-    try {
-      return format(parseISO(dateStr), "MMM d, yyyy");
-    } catch {
-      return "Invalid Date";
-    }
-  };
-
-  const formatTime = (timeStr: string | null) => {
-    if (!timeStr) return null;
-    try {
-      return format(parseISO(timeStr), "h:mm a");
-    } catch {
-      return null;
-    }
-  };
 
   const groupedByMonth = useMemo(() => {
     if (!events || events.length === 0) return [];
@@ -92,7 +58,7 @@ export default function EventsPage() {
     > = {};
 
     events.forEach((ev) => {
-      const dateStr = (ev as any).start_date || (ev as any).startDate;
+      const dateStr = ev.start_date;
       const d = dateStr ? new Date(dateStr) : new Date();
       const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
       const monthLabel = format(d, "MMMM yyyy");
@@ -121,10 +87,10 @@ export default function EventsPage() {
             dateKey,
             events: month.dates[dateKey].sort((x, y) => {
               const dx = new Date(
-                (x as any).start_date || (x as any).startDate,
+                x.start_date,
               ).getTime();
               const dy = new Date(
-                (y as any).start_date || (y as any).startDate,
+                y.start_date,
               ).getTime();
               return dx - dy;
             }),
@@ -161,12 +127,6 @@ export default function EventsPage() {
             {error}
           </div>
         )}
-        {deleteError && (
-          <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm mb-4">
-            {deleteError}
-          </div>
-        )}
-
         {loading ? (
           <PageLoading text="Loading events..." />
         ) : events.length === 0 ? (
@@ -229,12 +189,12 @@ export default function EventsPage() {
                               key={ev.id}
                               onClick={() => {
                                 try {
-                                  setSelectedEvent(ev as any);
+                                  setSelectedEvent(ev);
                                   setRightPanelMode("event-details");
-                                } catch (_) {}
+                                } catch {}
                               }}
                             >
-                              <EventCard event={ev as any} />
+                              <EventCard event={ev} />
                             </div>
                           ))}
                         </div>

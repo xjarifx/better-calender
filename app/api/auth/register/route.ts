@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createUser, getUserByUsername } from '@/lib/db-queries'
-import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 export async function POST(request: NextRequest) {
