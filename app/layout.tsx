@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { CalendarProvider } from "@/lib/calendar-context";
 import Sidebar from "@/components/Sidebar";
 import RightPanel from "@/components/RightPanel";
+import MobileNav from "@/components/MobileNav";
 
 const inter = Inter({
   variable: "--font-sans",
