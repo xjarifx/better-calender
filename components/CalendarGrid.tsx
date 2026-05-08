@@ -128,6 +128,8 @@ function DesktopDayCell({
     id: `day-${format(date, "yyyy-MM-dd")}`,
   });
 
+  const mode = maxVisible >= 4 ? "full" : maxVisible >= 2 ? "compact" : "dot";
+
   const visibleEvents = events.slice(0, maxVisible);
   const overflowCount = Math.max(events.length - visibleEvents.length, 0);
 
@@ -144,7 +146,7 @@ function DesktopDayCell({
         }
       }}
       className={cn(
-        "group relative flex min-h-[140px] flex-col border border-border/80 p-2 text-left transition-all duration-200 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+        "group relative flex min-h-0 flex-col overflow-hidden border border-border/80 p-2 text-left transition-all duration-200 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         isOutsideMonth && "bg-muted/10 text-muted-foreground",
         isOver && "bg-primary/10 ring-1 ring-primary/40",
       )}
@@ -161,25 +163,43 @@ function DesktopDayCell({
         </span>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
-        {visibleEvents.map((event) => {
-          const isDragging = draggingEventId === `event-${event.id}`;
-          return (
-            <DesktopDraggableEventBar
+      {mode === "dot" ? (
+        <div className="flex flex-wrap gap-0.5 content-start">
+          {events.slice(0, 20).map((event) => (
+            <div
               key={event.id}
-              event={event}
-              isDragging={isDragging}
-              onClick={() => onEventClick(event)}
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: getEventColor(event.title).borderColor }}
             />
-          );
-        })}
-
-        {overflowCount > 0 && (
-          <div className="text-[11px] font-medium text-muted-foreground">
-            +{overflowCount} more
-          </div>
-        )}
-      </div>
+          ))}
+          {events.length > 20 && (
+            <span className="text-[9px] leading-none text-muted-foreground">
+              +{events.length - 20}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-hidden">
+          {visibleEvents.map((event) => {
+            const isDragging = draggingEventId === `event-${event.id}`;
+            return (
+              <DesktopDraggableEventBar
+                key={event.id}
+                event={event}
+                isDragging={isDragging}
+                onClick={() => onEventClick(event)}
+                mode={mode}
+              />
+            );
+          })}
+          <div className="flex-1" />
+          {overflowCount > 0 && (
+            <div className="text-[11px] font-medium text-muted-foreground">
+              +{overflowCount} more
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -188,10 +208,12 @@ function DesktopDraggableEventBar({
   event,
   onClick,
   isDragging,
+  mode,
 }: {
   event: CalendarEvent;
   onClick: () => void;
   isDragging: boolean;
+  mode: "full" | "compact";
 }) {
   const { attributes, listeners, setNodeRef } = useDraggable({
     id: `event-${event.id}`,
@@ -209,16 +231,17 @@ function DesktopDraggableEventBar({
         onClick();
       }}
       className={cn(
-        "flex items-center gap-2 rounded-md border-l-4 px-2 py-1.5 text-left text-[11px] shadow-sm",
+        "flex items-center gap-1 rounded-md border-l-4 text-left shadow-sm",
+        mode === "full" ? "px-2 py-1.5 text-[11px]" : "px-1 py-0.5 text-[10px]",
         isDragging && "opacity-40",
       )}
       style={getEventColor(event.title)}
       {...attributes}
       {...listeners}
     >
-      <span className="h-2.5 w-2.5 rounded-full bg-current/80" />
+      <span className="h-2 w-2 shrink-0 rounded-full bg-current/80" />
       <span className="min-w-0 flex-1 truncate font-semibold">{event.title}</span>
-      {startTime && (
+      {startTime && mode === "full" && (
         <span className="shrink-0 text-current/80">{startTime}</span>
       )}
     </button>
@@ -354,19 +377,24 @@ export default function CalendarGrid({
 
   const updateMaxVisible = useCallback(() => {
     if (!gridRef.current) return;
-    const gridTop = gridRef.current.getBoundingClientRect().top;
-    const availableHeight = window.innerHeight - gridTop - 16;
+    const gridHeight = gridRef.current.offsetHeight;
     const weekCount = Math.ceil(monthDays.length / 7);
-    const cellHeight = Math.floor(availableHeight / weekCount);
-    const labelHeight = 28;
-    const overhead = 28;
+    const cellHeight = Math.floor(gridHeight / weekCount);
+    const overhead = 24;
+    const labelHeight = 18;
     setMaxVisible(Math.max(1, Math.floor((cellHeight - overhead) / labelHeight)));
   }, [monthDays.length]);
 
   useEffect(() => {
     updateMaxVisible();
+    const el = gridRef.current;
+    const observer = new ResizeObserver(updateMaxVisible);
+    if (el) observer.observe(el);
     window.addEventListener("resize", updateMaxVisible);
-    return () => window.removeEventListener("resize", updateMaxVisible);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateMaxVisible);
+    };
   }, [updateMaxVisible]);
 
   const eventsByDay = useMemo(() => {
@@ -616,14 +644,14 @@ export default function CalendarGrid({
           </div>
 
           {/* Desktop grid with DnD */}
-          <div className="hidden flex-1 flex-col overflow-auto md:flex">
+          <div className="hidden flex-1 flex-col md:flex">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div ref={gridRef} className="grid flex-1 grid-cols-7 rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+              <div ref={gridRef} className="grid flex-1 grid-cols-7 auto-rows-fr rounded-3xl border border-border/80 bg-card/70 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
                 {monthDays.map((date) => {
                   const dayKey = format(date, "yyyy-MM-dd");
                   const dayEvents = eventsByDay.get(dayKey) ?? [];
