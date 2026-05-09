@@ -150,7 +150,7 @@ function DesktopDayCell({
         isOver && "bg-primary/10 ring-1 ring-primary/40",
       )}
     >
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-center">
         <span
           className={cn(
             "text-xs font-semibold tabular-nums",
@@ -230,15 +230,14 @@ function DesktopDraggableEventBar({
         onClick();
       }}
       className={cn(
-        "flex items-center gap-1 rounded-md border-l-4 text-left shadow-sm",
-        mode === "full" ? "px-2 py-1.5 text-[11px]" : "px-1 py-0.5 text-[10px]",
+        "flex items-center gap-1 rounded-md border-l-3 text-left shadow-sm",
+        mode === "full" ? "px-2 py-0.5 text-[11px]" : "px-1 py-0.5 text-[10px]",
         isDragging && "opacity-40",
       )}
       style={getEventColor(event.title)}
       {...attributes}
       {...listeners}
     >
-      <span className="h-2 w-2 shrink-0 rounded-full bg-current/80" />
       <span className="min-w-0 flex-1 truncate font-semibold">{event.title}</span>
       {startTime && mode === "full" && (
         <span className="shrink-0 text-current/80">{startTime}</span>
@@ -276,9 +275,9 @@ function MobileDayCell({
     >
       <span
         className={cn(
-          "text-xs font-semibold tabular-nums leading-none",
+          "text-sm font-semibold tabular-nums leading-none",
           isSameDay(date, new Date()) &&
-            "flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground",
+            "flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground",
         )}
       >
         {format(date, "d")}
