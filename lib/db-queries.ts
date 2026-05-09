@@ -95,6 +95,12 @@ export async function deleteEvent(id: number, userId: number): Promise<events> {
   })
 }
 
+export async function deleteUser(id: number): Promise<users> {
+  return prisma.users.delete({
+    where: { id },
+  })
+}
+
 export async function updateUserApiKey(userId: number, apiKey: string | null): Promise<users> {
   return prisma.users.update({
     where: { id: userId },
